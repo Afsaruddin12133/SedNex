@@ -12,13 +12,23 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+      required: false,
+    },
+    country: {
+      type: String,
+      required: false,
+    },
+
     photo: String,
     role: {
       type: String,
       enum: ["user", "admin", "guest"],
       default: "user",
     },
-    provider: String, 
+    provider: String,
     isActive: {
       type: Boolean,
       default: true,

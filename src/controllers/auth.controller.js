@@ -3,27 +3,37 @@ const admin = require("../config/firebaseAdmin");
 
 const loginOrRegister = async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token, extraProfile } = req.body;
+    // extraProfile is OPTIONAL
 
     const decoded = await admin.auth().verifyIdToken(token);
 
     let user = await User.findOne({ firebaseUid: decoded.uid });
 
     if (!user) {
+      const provider = decoded.firebase.sign_in_provider;
+
+      const isPasswordUser = provider === "password";
+
       user = await User.create({
         firebaseUid: decoded.uid,
-        name: decoded.name || "Guest User",
         email: decoded.email,
+        name: decoded.name || "Admin",
         photo: decoded.picture,
-        provider: decoded.firebase.sign_in_provider,
-        role: "user",
+        provider,
+        gender: isPasswordUser ? extraProfile?.gender : undefined,
+        country: isPasswordUser ? extraProfile?.country : undefined,
+        isProfileComplete: !isPasswordUser ? true : Boolean(extraProfile?.gender && extraProfile?.country),
+        role: "admin",
       });
     }
 
     return res.status(200).json({
       message: "Authentication successful",
       user,
+      needsProfileCompletion: !user.isProfileComplete,
     });
+
   } catch (error) {
     return res.status(401).json({ message: "Authentication failed" });
   }

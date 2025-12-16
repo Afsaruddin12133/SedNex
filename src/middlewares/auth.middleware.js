@@ -1,4 +1,5 @@
 const admin = require("../config/firebaseAdmin");
+const User = require("../models/User");
 
 const authenticate = async (req, res, next) => {
   try {
@@ -10,11 +11,18 @@ const authenticate = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
     const decoded = await admin.auth().verifyIdToken(token);
+    
+    const user = await User.findOne({ firebaseUid: decoded.uid });
+
+    if (!user) {
+      return res.status(403).json({ message: "User not registered" });
+    }
 
     req.authUser = {
       uid: decoded.uid,
       email: decoded.email,
       name: decoded.name,
+      role: user.role, 
     };
 
     next();
