@@ -5,9 +5,6 @@ const loginOrRegister = async (req, res) => {
   try {
     const { token } = req.body;
 
-    console.log(token);
-    
-
     const decoded = await admin.auth().verifyIdToken(token);
 
     let user = await User.findOne({ firebaseUid: decoded.uid });
