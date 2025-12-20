@@ -4,7 +4,6 @@ const admin = require("../config/firebaseAdmin");
 const loginOrRegister = async (req, res) => {
   try {
     const { token, extraProfile } = req.body;
-    // extraProfile is OPTIONAL
 
     const decoded = await admin.auth().verifyIdToken(token);
 

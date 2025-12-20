@@ -33,6 +33,22 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+     profileImage: {
+      type: String,
+      default: null, // Cloudinary URL
+    },
+    bio: {
+      type: String,
+      maxLength: 200,
+    },
+
+    phone: {
+      type: String,
+    },
+
+    location: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
