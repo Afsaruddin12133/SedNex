@@ -14,6 +14,11 @@ const postSchema = new mongoose.Schema(
       trim: true,
       maxlength: 2000,
     },
+    category: {
+      type: String,
+      index: true,
+      required: true,
+    },
     lovedBy: [
       {
         type: mongoose.Schema.Types.ObjectId,

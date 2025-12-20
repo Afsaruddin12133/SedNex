@@ -1,6 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
-const { createPost, getPosts, toggleLove, getPostById, deletePost } = require("../controllers/post.controller");
+const { createPost, getPosts, toggleLove, getPostById, deletePost, getPostsByCategory } = require("../controllers/post.controller");
 const { createComment, getPostComments, getReplies } = require("../controllers/comment.controller");
 const adminMiddleware = require("../middlewares/admin.middleware");
 
@@ -14,8 +14,6 @@ router.post(
     authMiddleware, 
     createPost
 );
-
-
 // ========================
 // Get Posts with Pagination
 // ========================
@@ -33,7 +31,18 @@ router.get(
     authMiddleware,
     getPostById
 );
+// ========================
+// Get Posts By category
+// ========================
+router.get(
+    "/category/:category",
+    authMiddleware,
+    getPostsByCategory
+);
 
+// ========================
+// Delete Posts By ID
+// ========================
 
 router.delete(
     "/:postId", 

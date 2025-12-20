@@ -7,7 +7,8 @@ const Comment = require("../models/Comment");
 // ========================
 const createPost = async (req, res) => {
   try {
-    const { description } = req.body;
+    const { description,category } = req.body;
+    const lowerCategory = category.toLowerCase();
 
     if (!description || description.trim() === "") {
       return res.status(400).json({
@@ -30,6 +31,7 @@ const createPost = async (req, res) => {
 
     const post = await Post.create({
       author: user._id,
+      category: lowerCategory,
       description,
     });
 
@@ -131,6 +133,7 @@ const toggleLove = async (req, res) => {
 const getPostById = async (req, res) => {
   try {
     const { postId } = req.params;
+    
 
     const post = await Post.findOne({
       _id: postId,
@@ -152,6 +155,46 @@ const getPostById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch post",
+    });
+  }
+};
+
+
+const getPostsByCategory = async (req, res) => {
+  
+  try {
+    const { category } = req.params;
+    
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({
+      category,
+      isActive: true,
+    })
+      .populate("author", "name email photo role")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Post.countDocuments({
+      category,
+      isActive: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      category,
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalPosts: total,
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch posts by category",
     });
   }
 };
@@ -206,5 +249,6 @@ module.exports = {
   getPosts,
   toggleLove,
   getPostById,
-  deletePost
+  deletePost,
+  getPostsByCategory,
 };
