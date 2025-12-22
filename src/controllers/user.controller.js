@@ -39,13 +39,14 @@ const updateUserRole = async (req, res) => {
     const { userId } = req.params; 
     const { role } = req.body;
 
+  
     const allowedRoles = ["user", "admin"];
 
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
     }
-
-    if (req.authUser.uid === userId) {
+    
+    if (req.authUser.uid.toString() === userId) {
       return res.status(400).json({
         message: "You cannot change your own role",
       });
