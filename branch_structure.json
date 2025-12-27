@@ -1,0 +1,18 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "copilot/understand-repository-usage",
+    "main",
+    "origin"
+  ],
+  "parent": {
+    "copilot/understand-repository-usage": "main",
+    "main": null,
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "copilot/understand-repository-usage",
+    "origin"
+  ]
+}
