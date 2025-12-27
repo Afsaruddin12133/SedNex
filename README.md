@@ -93,7 +93,7 @@ POST /api/article/:articleId/save - Toggle save article
 ## ⚙️ Setup & Installation
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v18 or higher recommended)
 - MongoDB database
 - Firebase project with Admin SDK
 - Cloudinary account
