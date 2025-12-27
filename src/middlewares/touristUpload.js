@@ -5,17 +5,16 @@ const cloudinary = require("../config/cloudinary");
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "user_profiles",
+    folder: "tourist_spots",
     allowed_formats: ["jpg", "png", "jpeg", "webp"],
-    transformation: [{ width: 300, height: 300, crop: "fill" }],
   },
 });
 
-const upload = multer({
+const touristUpload = multer({
   storage,
   limits: {
-    fileSize: 2 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024,
   },
 });
 
-module.exports = upload;
+module.exports = touristUpload;

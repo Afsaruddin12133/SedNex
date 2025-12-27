@@ -3,7 +3,7 @@ const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
 const { updateUserRole, updateUserProfile } = require("../controllers/user.controller");
 const { getAllUsers } = require("../controllers/user.controller");
-const { default: upload } = require("../middlewares/upload");
+const upload = require("../middlewares/upload");
 
 const router = express.Router();
 

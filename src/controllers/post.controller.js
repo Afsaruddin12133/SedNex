@@ -244,6 +244,92 @@ const deletePost = async (req, res) => {
   }
 };
 
+// ========================
+// Update Post
+// ========================
+
+const updatePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { description, category } = req.body;
+
+    if (
+      (description === undefined || description === null) &&
+      (category === undefined || category === null)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide at least one field to update",
+      });
+    }
+
+    const firebaseUid = req.authUser.uid;
+
+    const user = await User.findOne({ firebaseUid });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.role !== "user") {
+      return res.status(403).json({
+        success: false,
+        message: "Only regular users can edit posts",
+      });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post || !post.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    if (post.author.toString() !== user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only edit your own post",
+      });
+    }
+
+    if (description !== undefined) {
+      if (!description || description.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "Post description cannot be empty",
+        });
+      }
+      post.description = description;
+    }
+
+    if (category !== undefined) {
+      if (!category || category.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "Post category cannot be empty",
+        });
+      }
+      post.category = category.toLowerCase();
+    }
+
+    await post.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Post updated successfully",
+      post,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update post",
+    });
+  }
+};
+
 module.exports = {
   createPost,
   getPosts,
@@ -251,4 +337,5 @@ module.exports = {
   getPostById,
   deletePost,
   getPostsByCategory,
+  updatePost,
 };
