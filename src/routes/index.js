@@ -7,6 +7,9 @@ const touristRoutes = require("./tourist.routes");
 const aboutRoutes = require("./about.routes");
 const productRoutes = require("./product.routes");
 const categoryRoutes = require("./category.routes");
+const sectionRoutes = require("./section.routes");
+const learnArabicRoutes = require("./learnArabic.routes");
+const homepageRoutes = require("./homepage.routes");
 
 
 const router = express.Router();
@@ -19,6 +22,9 @@ router.use("/tourist", touristRoutes);
 router.use("/about", aboutRoutes);
 router.use("/products", productRoutes);
 router.use("/categories", categoryRoutes);
+router.use("/sections", sectionRoutes);
+router.use("/learn-arabic", learnArabicRoutes);
+router.use("/homepage", homepageRoutes);
 
 
 module.exports = router;
