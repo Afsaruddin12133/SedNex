@@ -1,5 +1,5 @@
 const SavedArticle = require("../models/savedArticle.model");
-const Article = require("../models/article.model");
+const Article = require("../models/Article.model");
 const User = require("../models/User");
 
 
