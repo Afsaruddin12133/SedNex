@@ -1,8 +1,6 @@
 const HomepageMarquee = require("../models/HomepageMarquee");
 const HomepageSlider = require("../models/HomepageSlider");
 
-const STATUS_VALUES = new Set(["active", "inactive"]);
-
 const toTrimmedString = (value) => {
   if (value === undefined || value === null) {
     return undefined;
@@ -14,8 +12,6 @@ const toTrimmedString = (value) => {
 const createMarquee = async (req, res) => {
   try {
     const text = toTrimmedString(req.body?.text);
-    const statusInput = toTrimmedString(req.body?.status);
-    const orderInput = req.body?.order;
 
     if (!text) {
       return res.status(400).json({
@@ -24,40 +20,15 @@ const createMarquee = async (req, res) => {
       });
     }
 
-    let status;
-    if (statusInput) {
-      const normalized = statusInput.toLowerCase();
-      if (!STATUS_VALUES.has(normalized)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid status provided",
-        });
-      }
-      status = normalized;
-    }
-
-    let order;
-    if (orderInput !== undefined) {
-      const parsedOrder = Number(orderInput);
-      if (Number.isNaN(parsedOrder) || parsedOrder < 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Order must be a non-negative number",
-        });
-      }
-      order = parsedOrder;
-    }
+    await HomepageMarquee.deleteMany({});
 
     const marquee = await HomepageMarquee.create({
       text,
-      status,
-      order,
     });
 
     return res.status(201).json({
       success: true,
-      message: "Marquee created successfully",
-      marquee,
+      message: "Marquee created successfully"
     });
   } catch (error) {
     console.error("Create Homepage Marquee Error:", error);
@@ -70,8 +41,7 @@ const createMarquee = async (req, res) => {
 
 const getPublicMarquees = async (req, res) => {
   try {
-    const marquees = await HomepageMarquee.find({ status: "active" })
-      .sort({ order: 1, createdAt: -1 });
+    const marquees = await HomepageMarquee.find().sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
@@ -100,9 +70,6 @@ const updateMarquee = async (req, res) => {
     }
 
     const text = toTrimmedString(req.body?.text);
-    const statusInput = toTrimmedString(req.body?.status);
-    const orderInput = req.body?.order;
-
     if (text !== undefined) {
       if (!text) {
         return res.status(400).json({
@@ -113,35 +80,9 @@ const updateMarquee = async (req, res) => {
       marquee.text = text;
     }
 
-    if (statusInput !== undefined) {
-      if (!statusInput) {
-        return res.status(400).json({
-          success: false,
-          message: "Status cannot be empty",
-        });
-      }
-      const normalized = statusInput.toLowerCase();
-      if (!STATUS_VALUES.has(normalized)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid status provided",
-        });
-      }
-      marquee.status = normalized;
-    }
-
-    if (orderInput !== undefined) {
-      const parsedOrder = Number(orderInput);
-      if (Number.isNaN(parsedOrder) || parsedOrder < 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Order must be a non-negative number",
-        });
-      }
-      marquee.order = parsedOrder;
-    }
-
     await marquee.save();
+
+    await HomepageMarquee.deleteMany({ _id: { $ne: marquee._id } });
 
     return res.status(200).json({
       success: true,
@@ -157,32 +98,6 @@ const updateMarquee = async (req, res) => {
   }
 };
 
-const deleteMarquee = async (req, res) => {
-  try {
-    const { marqueeId } = req.params;
-    const marquee = await HomepageMarquee.findById(marqueeId);
-
-    if (!marquee) {
-      return res.status(404).json({
-        success: false,
-        message: "Marquee not found",
-      });
-    }
-
-    await marquee.deleteOne();
-
-    return res.status(200).json({
-      success: true,
-      message: "Marquee deleted successfully",
-    });
-  } catch (error) {
-    console.error("Delete Homepage Marquee Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to delete marquee",
-    });
-  }
-};
 
 const createSlider = async (req, res) => {
   try {
@@ -378,7 +293,6 @@ module.exports = {
   createMarquee,
   getPublicMarquees,
   updateMarquee,
-  deleteMarquee,
   createSlider,
   getPublicSliders,
   updateSlider,

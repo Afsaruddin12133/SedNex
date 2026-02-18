@@ -7,7 +7,6 @@ const {
   getPublicMarquees,
   getMarqueesAdmin,
   updateMarquee,
-  deleteMarquee,
   createSlider,
   getPublicSliders,
   getSlidersAdmin,
@@ -34,13 +33,6 @@ router.patch(
   authMiddleware,
   adminMiddleware,
   updateMarquee
-);
-
-router.delete(
-  "/marquees/:marqueeId",
-  authMiddleware,
-  adminMiddleware,
-  deleteMarquee
 );
 
 router.get(
