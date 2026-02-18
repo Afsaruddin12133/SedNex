@@ -1,7 +1,9 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
+const { uploadPostImages } = require("../middlewares/postUploads");
 const { createPost, getPosts, toggleLove, getPostById, deletePost, getPostsByCategory, updatePost } = require("../controllers/post.controller");
 const { createComment, getPostComments, getReplies } = require("../controllers/comment.controller");
+const { toggleSavePost } = require("../controllers/savedPost.controller");
 const adminMiddleware = require("../middlewares/admin.middleware");
 
 const router = express.Router();
@@ -12,14 +14,14 @@ const router = express.Router();
 router.post(
     "/", 
     authMiddleware, 
+    uploadPostImages,
     createPost
 );
 // ========================
 // Get Posts with Pagination
 // ========================
 router.get(
-    "/", 
-    authMiddleware, 
+    "/",  
     getPosts
 );
 
@@ -28,7 +30,6 @@ router.get(
 // ========================
 router.get(
     "/:postId",
-    authMiddleware,
     getPostById
 );
 // ========================
@@ -37,6 +38,7 @@ router.get(
 router.patch(
     "/:postId",
     authMiddleware,
+    uploadPostImages,
     updatePost
 );
 // ========================
@@ -44,9 +46,14 @@ router.patch(
 // ========================
 router.get(
     "/category/:category",
-    authMiddleware,
     getPostsByCategory
 );
+
+router.post(
+    "/save/:postId",
+    authMiddleware,
+    toggleSavePost
+)
 
 // ========================
 // Delete Posts By ID
@@ -81,7 +88,6 @@ router.post(
 
 router.get(
     "/comment/:postId", 
-    authMiddleware,
     getPostComments
 );
 router.get(

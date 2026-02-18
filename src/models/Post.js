@@ -19,6 +19,10 @@ const postSchema = new mongoose.Schema(
       index: true,
       required: true,
     },
+    images: {
+      type: [String],
+      default: [],
+    },
     lovedBy: [
       {
         type: mongoose.Schema.Types.ObjectId,

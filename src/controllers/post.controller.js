@@ -9,6 +9,7 @@ const createPost = async (req, res) => {
   try {
     const { description,category } = req.body;
     const lowerCategory = category.toLowerCase();
+    const files = Array.isArray(req.files) ? req.files : [];
 
     if (!description || description.trim() === "") {
       return res.status(400).json({
@@ -17,10 +18,16 @@ const createPost = async (req, res) => {
       });
     }
 
-    // Get authenticated user from middleware
-    const firebaseUid = req.authUser.uid;
+    if (files.length < 1 || files.length > 4) {
+      return res.status(400).json({
+        success: false,
+        message: "You must upload between 1 and 4 images",
+      });
+    }
 
-    const user = await User.findOne({ firebaseUid });
+    const userId = req.authUser.userId;
+
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({
@@ -33,6 +40,7 @@ const createPost = async (req, res) => {
       author: user._id,
       category: lowerCategory,
       description,
+      images: files.map((file) => file.path || file.secure_url),
     });
 
     res.status(201).json({
@@ -90,9 +98,9 @@ const getPosts = async (req, res) => {
 const toggleLove = async (req, res) => {
   try {
     const { postId } = req.params;
-    const firebaseUid = req.authUser.uid;
+    const userId = req.authUser.userId;
 
-    const user = await User.findOne({ firebaseUid });
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -206,9 +214,9 @@ const getPostsByCategory = async (req, res) => {
 const deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const firebaseUid = req.authUser.uid;
+    const userId = req.authUser.userId;
 
-    const user = await User.findOne({ firebaseUid });
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(401).json({ message: "User Not Found" });
     }
@@ -252,20 +260,29 @@ const updatePost = async (req, res) => {
   try {
     const { postId } = req.params;
     const { description, category } = req.body;
+    const files = Array.isArray(req.files) ? req.files : [];
 
     if (
       (description === undefined || description === null) &&
-      (category === undefined || category === null)
+      (category === undefined || category === null) &&
+      files.length === 0
     ) {
       return res.status(400).json({
         success: false,
-        message: "Provide at least one field to update",
+        message: "Provide at least one field or images to update",
       });
     }
 
-    const firebaseUid = req.authUser.uid;
+    if (files.length > 4) {
+      return res.status(400).json({
+        success: false,
+        message: "You can upload up to 4 images",
+      });
+    }
 
-    const user = await User.findOne({ firebaseUid });
+    const userId = req.authUser.userId;
+
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -313,6 +330,10 @@ const updatePost = async (req, res) => {
         });
       }
       post.category = category.toLowerCase();
+    }
+
+    if (files.length > 0) {
+      post.images = files.map((file) => file.path || file.secure_url);
     }
 
     await post.save();
