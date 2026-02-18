@@ -1,41 +1,120 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const admin = require("../config/firebaseAdmin");
 
-const loginOrRegister = async (req, res) => {
+const register = async (req, res) => {
   try {
-    const { token, extraProfile } = req.body;
+    const { fullName, email, country, password } = req.body;
 
-    const decoded = await admin.auth().verifyIdToken(token);
-
-    let user = await User.findOne({ firebaseUid: decoded.uid });
-
-    if (!user) {
-      const provider = decoded.firebase.sign_in_provider;
-
-      const isPasswordUser = provider === "password";
-
-      user = await User.create({
-        firebaseUid: decoded.uid,
-        email: decoded.email,
-        name: decoded.name || "Admin",
-        photo: decoded.picture,
-        provider,
-        gender: isPasswordUser ? extraProfile?.gender : undefined,
-        country: isPasswordUser ? extraProfile?.country : undefined,
-        isProfileComplete: !isPasswordUser ? true : Boolean(extraProfile?.gender && extraProfile?.country),
-        role: "admin",
+    if (!fullName) {
+      return res.status(400).json({
+        message: "fullName is required",
       });
     }
 
-    return res.status(200).json({
-      message: "Authentication successful",
-      user,
-      needsProfileCompletion: !user.isProfileComplete,
+    if (!email) {
+      return res.status(400).json({
+        message: "email is required",
+      });
+    }
+
+    if (!country) {
+      return res.status(400).json({
+        message: "country is required",
+      });
+    }
+
+    if (!password) {
+      return res.status(400).json({
+        message: "password is required",
+      });
+    }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(409).json({
+        message: "Email already registered kindly login instead",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name: fullName,
+      email,
+      country,
+      password: hashedPassword,
+      role: "user",
     });
 
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return res.status(201).json({
+      message: "Registration successful"
+    });
   } catch (error) {
-    return res.status(401).json({ message: "Authentication failed" });
+    return res.status(500).json({
+      message: "Registration failed",
+      error: error.message,
+    });
   }
 };
 
-module.exports = { loginOrRegister };
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "email is required",
+      });
+    }
+
+    if (!password) {
+      return res.status(400).json({
+        message: "password is required",
+      });
+    }
+
+    const user = await User.findOne({ email }).select("+password");
+
+    if (!user) {
+      return res.status(401).json({ message: "Wrong Email" });
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({ message: "Account is disabled" });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword) {
+      return res.status(401).json({ message: "Wrong password" });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "JWT secret is not configured" });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      user: userResponse,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Login failed", error: error.message });
+  }
+};
+
+module.exports = { login, register };
