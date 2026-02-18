@@ -1,5 +1,6 @@
 const HomepageMarquee = require("../models/HomepageMarquee");
 const HomepageSlider = require("../models/HomepageSlider");
+const ServiceCard = require("../models/ServiceCard");
 
 const STATUS_VALUES = new Set(["active", "inactive"]);
 
@@ -9,6 +10,28 @@ const toTrimmedString = (value) => {
   }
   const trimmed = String(value).trim();
   return trimmed.length ? trimmed : undefined;
+};
+
+const parsePrice = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return { error: "price is required" };
+  }
+  const parsed = Number(value);
+  if (Number.isNaN(parsed) || !Number.isFinite(parsed) || parsed <= 0) {
+    return { error: "price must be a positive number" };
+  }
+  return { value: parsed };
+};
+
+const parseTime = (value) => {
+  if (!value) {
+    return { error: "time is required" };
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return { error: "time must be a valid ISO datetime" };
+  }
+  return { value: parsed };
 };
 
 const createMarquee = async (req, res) => {
@@ -290,6 +313,184 @@ const deleteSlider = async (req, res) => {
   }
 };
 
+const createServiceCard = async (req, res) => {
+  try {
+    const nameInput = toTrimmedString(req.body?.name);
+    const iconInput = req.file?.path || req.file?.secure_url;
+    const priceResult = parsePrice(req.body?.price);
+    const timeResult = parseTime(req.body?.time);
+
+    if (!nameInput) {
+      return res.status(400).json({
+        success: false,
+        message: "name is required",
+      });
+    }
+
+    if (!iconInput) {
+      return res.status(400).json({
+        success: false,
+        message: "icon is required",
+      });
+    }
+
+    if (priceResult.error) {
+      return res.status(400).json({
+        success: false,
+        message: priceResult.error,
+      });
+    }
+
+    if (timeResult.error) {
+      return res.status(400).json({
+        success: false,
+        message: timeResult.error,
+      });
+    }
+
+    const card = await ServiceCard.create({
+      name: nameInput,
+      icon: iconInput,
+      price: priceResult.value,
+      time: timeResult.value,
+      createdAt: new Date(),
+    });
+
+    return res.status(201).json({
+      success: true,
+      card,
+    });
+  } catch (error) {
+    console.error("Create Service Card Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create service card",
+    });
+  }
+};
+
+const updateServiceCard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const card = await ServiceCard.findById(id);
+
+    if (!card) {
+      return res.status(404).json({
+        success: false,
+        message: "Service card not found",
+      });
+    }
+
+    const nameInput = toTrimmedString(req.body?.name);
+    const iconInput = req.file?.path || req.file?.secure_url;
+
+    if (
+      nameInput === undefined &&
+      !iconInput &&
+      req.body?.price === undefined &&
+      req.body?.time === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields provided for update",
+      });
+    }
+
+    if (nameInput !== undefined) {
+      if (!nameInput) {
+        return res.status(400).json({
+          success: false,
+          message: "name cannot be empty",
+        });
+      }
+      card.name = nameInput;
+    }
+
+    if (iconInput) {
+      card.icon = iconInput;
+    }
+
+    if (req.body?.price !== undefined) {
+      const priceResult = parsePrice(req.body?.price);
+      if (priceResult.error) {
+        return res.status(400).json({
+          success: false,
+          message: priceResult.error,
+        });
+      }
+      card.price = priceResult.value;
+    }
+
+    if (req.body?.time !== undefined) {
+      const timeResult = parseTime(req.body?.time);
+      if (timeResult.error) {
+        return res.status(400).json({
+          success: false,
+          message: timeResult.error,
+        });
+      }
+      card.time = timeResult.value;
+    }
+
+    await card.save();
+
+    return res.status(200).json({
+      success: true,
+      card,
+    });
+  } catch (error) {
+    console.error("Update Service Card Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update service card",
+    });
+  }
+};
+
+const deleteServiceCard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const card = await ServiceCard.findById(id);
+
+    if (!card) {
+      return res.status(404).json({
+        success: false,
+        message: "Service card not found",
+      });
+    }
+
+    await card.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Service card deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Service Card Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete service card",
+    });
+  }
+};
+
+const getServiceCards = async (req, res) => {
+  try {
+    const cards = await ServiceCard.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      cards,
+    });
+  } catch (error) {
+    console.error("Get Service Cards Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch service cards",
+    });
+  }
+};
+
 module.exports = {
   createMarquee,
   getPublicMarquees,
@@ -298,4 +499,8 @@ module.exports = {
   getPublicSliders,
   updateSlider,
   deleteSlider,
+  createServiceCard,
+  updateServiceCard,
+  deleteServiceCard,
+  getServiceCards,
 };

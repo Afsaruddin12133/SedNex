@@ -1,40 +1,25 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
-const sliderUpload = require("../middlewares/sliderUpload");
+const {
+  uploadSingleSliderImage,
+  uploadSingleServiceIcon,
+} = require("../middlewares/homepageUploads");
 const {
   createMarquee,
   getPublicMarquees,
-  getMarqueesAdmin,
   updateMarquee,
   createSlider,
   getPublicSliders,
-  getSlidersAdmin,
   updateSlider,
   deleteSlider,
+  createServiceCard,
+  updateServiceCard,
+  deleteServiceCard,
+  getServiceCards,
 } = require("../controllers/homepage.controller");
 
 const router = express.Router();
-
-const uploadSingleSliderImage = (req, res, next) => {
-  sliderUpload.single("image")(req, res, (error) => {
-    if (!error) {
-      return next();
-    }
-
-    if (error.code === "LIMIT_UNEXPECTED_FILE") {
-      return res.status(400).json({
-        success: false,
-        message: "You must upload one image at a time",
-      });
-    }
-
-    return res.status(400).json({
-      success: false,
-      message: error.message || "Image upload failed",
-    });
-  });
-};
 
 router.get(
     "/marquees", 
@@ -82,5 +67,35 @@ router.delete(
   adminMiddleware,
   deleteSlider
 );
+
+router.get(
+  "/services",
+  getServiceCards
+);
+
+router.post(
+  "/services/create",
+  authMiddleware,
+  adminMiddleware,
+  uploadSingleServiceIcon,
+  createServiceCard
+);
+
+router.patch(
+  "/services/edit/:id",
+  authMiddleware,
+  adminMiddleware,
+  uploadSingleServiceIcon,
+  updateServiceCard
+);
+
+router.delete(
+  "/services/delete/:id",
+  authMiddleware,
+  adminMiddleware,
+  deleteServiceCard
+);
+
+
 
 module.exports = router;
