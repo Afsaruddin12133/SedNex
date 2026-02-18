@@ -80,21 +80,27 @@ const updateUserRole = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
   try {
-    const { firebaseUid } = req.params;
+    const { mongooseId } = req.params;
 
     const updates = {};
 
-    if (req.body.name) updates.name = req.body.name;
-    if (req.body.bio) updates.bio = req.body.bio;
-    if (req.body.phone) updates.phone = req.body.phone;
-    if (req.body.location) updates.location = req.body.location;
+    if (req.body.name !== undefined) updates.name = req.body.name;
+    if (req.body.bio !== undefined) updates.bio = req.body.bio;
+    if (req.body.phone !== undefined) updates.phone = req.body.phone;
+    if (req.body.country !== undefined) updates.country = req.body.country;
 
     if (req.file) {
       updates.profileImage = req.file.path; 
     }
 
-    const user = await User.findOneAndUpdate(
-      { firebaseUid },
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        message: "Provide at least one field to update",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      mongooseId,
       { $set: updates },
       { new: true, runValidators: true }
     );

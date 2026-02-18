@@ -25,7 +25,7 @@ router.patch(
 
 // Update Users...
 router.patch(
-  "/:firebaseUid",
+  "/:mongooseId",
   authMiddleware,  
   upload.single("profileImage"),
   updateUserProfile

@@ -26,19 +26,36 @@ const userSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
-      // default: null, // Cloudinary URL
+      default: null, // Cloudinary URL
     },
     bio: {
       type: String,
       maxLength: 200,
+      default: null
     },
 
     phone: {
       type: String,
+      default: null,
     },
-
-    location: {
+    provider: {
       type: String,
+    },
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      select: false,
+    },
+    resetPasswordOtp: {
+      type: String,
+      select: false,
+    },
+    resetPasswordOtpExpires: {
+      type: Date,
+      select: false,
     },
   },
   { timestamps: true }
