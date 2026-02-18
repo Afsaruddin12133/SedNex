@@ -16,6 +16,26 @@ const {
 
 const router = express.Router();
 
+const uploadSingleSliderImage = (req, res, next) => {
+  sliderUpload.single("image")(req, res, (error) => {
+    if (!error) {
+      return next();
+    }
+
+    if (error.code === "LIMIT_UNEXPECTED_FILE") {
+      return res.status(400).json({
+        success: false,
+        message: "You must upload one image at a time",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Image upload failed",
+    });
+  });
+};
+
 router.get(
     "/marquees", 
     getPublicMarquees
@@ -44,7 +64,7 @@ router.post(
   "/sliders",
   authMiddleware,
   adminMiddleware,
-  sliderUpload.single("image"),
+  uploadSingleSliderImage,
   createSlider
 );
 
@@ -52,7 +72,7 @@ router.patch(
   "/sliders/:sliderId",
   authMiddleware,
   adminMiddleware,
-  sliderUpload.single("image"),
+  uploadSingleSliderImage,
   updateSlider
 );
 

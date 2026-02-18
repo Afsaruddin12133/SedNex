@@ -1,6 +1,8 @@
 const HomepageMarquee = require("../models/HomepageMarquee");
 const HomepageSlider = require("../models/HomepageSlider");
 
+const STATUS_VALUES = new Set(["active", "inactive"]);
+
 const toTrimmedString = (value) => {
   if (value === undefined || value === null) {
     return undefined;
@@ -151,8 +153,7 @@ const createSlider = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Slider created successfully",
-      slider,
+      message: "Slider created successfully"
     });
   } catch (error) {
     console.error("Create Homepage Slider Error:", error);
