@@ -719,7 +719,7 @@ const addProductReview = async (req, res) => {
       });
     }
 
-    if (!req.authUser || !req.authUser.uid) {
+    if (!req.authUser) {
       return res.status(401).json({
         success: false,
         message: "Authentication required",
@@ -790,7 +790,7 @@ const toggleProductLove = async (req, res) => {
       });
     }
 
-    if (!req.authUser || !req.authUser.uid) {
+    if (!req.authUser ) {
       return res.status(401).json({
         success: false,
         message: "Authentication required",
