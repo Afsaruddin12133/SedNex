@@ -29,9 +29,9 @@ const createArticle = async (req, res) => {
       });
     }
 
-    const firebaseUid = req.authUser.uid;
+    const { userId } = req.authUser;
 
-    const user = await User.findOne({ firebaseUid });
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({
@@ -82,9 +82,10 @@ const updateArticle = async (req, res) => {
       });
     }
 
-    const firebaseUid = req.authUser.uid;
+    const { userId } = req.authUser;
 
-    const user = await User.findOne({ firebaseUid });
+    const user = await User.findById(userId);
+    
     if (!user) {
       return res.status(404).json({
         success: false,

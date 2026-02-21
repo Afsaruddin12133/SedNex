@@ -19,8 +19,8 @@ const createTouristSpot = async (req, res) => {
       });
     }
 
-    const firebaseUid = req.authUser.uid;
-    const user = await User.findOne({ firebaseUid });
+    const { userId } = req.authUser;
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({
@@ -59,14 +59,6 @@ const createTouristSpot = async (req, res) => {
 
 const getTouristSpots = async (req, res) => {
   try {
-    const { role } = req.authUser || {};
-
-    if (role !== "user" && role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
-    }
 
     const spots = await TouristSpot.find()
       .populate("author", "name email role")
@@ -88,14 +80,6 @@ const getTouristSpots = async (req, res) => {
 
 const getTouristSpotById = async (req, res) => {
   try {
-    const { role } = req.authUser || {};
-
-    if (role !== "user" && role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
-    }
 
     const { touristId } = req.params;
     const spot = await TouristSpot.findById(touristId).populate(
@@ -139,8 +123,8 @@ const updateTouristSpot = async (req, res) => {
       });
     }
 
-    const firebaseUid = req.authUser.uid;
-    const user = await User.findOne({ firebaseUid });
+    const { userId } = req.authUser;
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({

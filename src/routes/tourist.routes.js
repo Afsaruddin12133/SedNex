@@ -21,13 +21,13 @@ router.post(
 
 router.get(
   "/",
-  authMiddleware,
+  // authMiddleware,
   getTouristSpots
 );
 
 router.get(
   "/:touristId",
-  authMiddleware,
+  // authMiddleware,
   getTouristSpotById
 );
 

@@ -7,8 +7,8 @@ const toggleSaveArticle = async (req, res) => {
   try {
     const { articleId } = req.params;
 
-    const firebaseUid = req.authUser.uid;
-    const user = await User.findOne({ firebaseUid });
+    const { userId } = req.authUser;
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({

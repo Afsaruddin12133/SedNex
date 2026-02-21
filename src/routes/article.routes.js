@@ -14,13 +14,13 @@ router.post(
 
 router.get(
     "/",
-    authMiddleware,
+    // authMiddleware,
     getArticles,
 );
 
 router.get(
     "/:articleId",
-    authMiddleware,
+    // authMiddleware,
     getArticleById,
 );
 
