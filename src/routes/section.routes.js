@@ -29,17 +29,16 @@ router.get(
     getSections
 );
 router.get(
-  "/:slug/items/admin",
+  "/:slug/items",
   authMiddleware,
-  adminMiddleware,
   getSectionItemsAdmin
 );
-router.get(
-  "/:slug/items/:itemId/details/admin",
-  authMiddleware,
-  adminMiddleware,
-  getSectionItemDetailsAdmin
-);
+// router.get(
+//   "/:slug/items/:itemId/details/admin",
+//   authMiddleware,
+//   adminMiddleware,
+//   getSectionItemDetailsAdmin
+// );
 router.get(
   "/:slug/items/:itemId/details",
   getSectionItemDetails

@@ -31,7 +31,6 @@ const getSections = async (req, res) => {
 
 const createSection = async (req, res) => {
   try {
-    const allowedNames = Section.schema.path("name").enumValues;
     const allowedStatuses = Section.schema.path("status").enumValues;
 
     const rawName = req.body?.name;
@@ -42,13 +41,6 @@ const createSection = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Section name is required",
-      });
-    }
-
-    if (!allowedNames.includes(name)) {
-      return res.status(400).json({
-        success: false,
-        message: `Section name must be one of: ${allowedNames.join(", ")}`,
       });
     }
 
