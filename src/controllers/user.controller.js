@@ -8,13 +8,18 @@ const getAllUsers = async (req, res) => {
     const users = await User.find(
       {},
       {
-        _id: 0,
-        firebaseUid: 1,
+        _id: 1,
         name: 1,
         email: 1,
+        country: 1,
         role: 1,
         isActive: 1,
+        profileImage: 1,
+        bio: 1,
+        phone: 1,
+        provider: 1,
         createdAt: 1,
+        updatedAt: 1,
       }
     ).sort({ createdAt: -1 });
 
@@ -80,18 +85,16 @@ const updateUserRole = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
   try {
-    const { mongooseId } = req.params;
+    const { userId } = req.params;
 
-    const updates = {};
-
-    if (req.body.name !== undefined) updates.name = req.body.name;
-    if (req.body.bio !== undefined) updates.bio = req.body.bio;
-    if (req.body.phone !== undefined) updates.phone = req.body.phone;
-    if (req.body.country !== undefined) updates.country = req.body.country;
+    const updates = { ...req.body };
 
     if (req.file) {
-      updates.profileImage = req.file.path; 
+      updates.profileImage = req.file.path;
     }
+
+    delete updates._id;
+    delete updates.__v;
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
@@ -100,7 +103,7 @@ const updateUserProfile = async (req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(
-      mongooseId,
+      userId,
       { $set: updates },
       { new: true, runValidators: true }
     );

@@ -11,7 +11,6 @@ const router = express.Router();
 router.get(
   "/", 
   authMiddleware, 
-  adminMiddleware,
   getAllUsers
 );
 
@@ -25,8 +24,8 @@ router.patch(
 
 // Update Users...
 router.patch(
-  "/:mongooseId",
-  authMiddleware,  
+  "/:userId",
+  authMiddleware,
   upload.single("profileImage"),
   updateUserProfile
 );
