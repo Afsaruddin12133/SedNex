@@ -18,12 +18,12 @@ const createPost = async (req, res) => {
       });
     }
 
-    if (files.length < 1 || files.length > 4) {
-      return res.status(400).json({
-        success: false,
-        message: "You must upload between 1 and 4 images",
-      });
-    }
+    // if (files.length < 1 || files.length > 4) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "You must upload between 1 and 4 images",
+    //   });
+    // }
 
     const userId = req.authUser.userId;
 
