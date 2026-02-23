@@ -62,7 +62,6 @@ router.post(
 router.delete(
     "/:postId", 
      authMiddleware, 
-    adminMiddleware,
     deletePost
 );
 

@@ -72,7 +72,7 @@ const getPosts = async (req, res) => {
     const totalPosts = await Post.countDocuments({ isActive: true });
 
     const posts = await Post.find({ isActive: true })
-      .populate("author", "name email role") 
+      .populate("author", "name email role profileImage") 
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -146,7 +146,7 @@ const getPostById = async (req, res) => {
     const post = await Post.findOne({
       _id: postId,
       isActive: true,
-    }).populate("author", "name email photo role");
+    }).populate("author", "name email role profileImage");
 
     if (!post) {
       return res.status(404).json({
@@ -181,7 +181,7 @@ const getPostsByCategory = async (req, res) => {
       category,
       isActive: true,
     })
-      .populate("author", "name email photo role")
+      .populate("author", "name email role profileImage")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);

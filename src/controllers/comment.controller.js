@@ -6,13 +6,13 @@ const createComment = async (req, res) => {
   try {
     const { postId } = req.params;
     const { content, parentCommentId } = req.body;
-    const firebaseUid = req.authUser.uid;
+    const userId = req.authUser.userId;
 
     if (!content) {
       return res.status(400).json({ message: "Comment content required" });
     }
 
-    const user = await User.findOne({ firebaseUid });
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -65,7 +65,7 @@ const getPostComments = async (req, res) => {
       parentComment: null,
       isActive: true,
     })
-      .populate("author", "name photo")
+      .populate("author", "name email role profileImage")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -98,7 +98,7 @@ const getReplies = async (req, res) => {
       parentComment: commentId,
       isActive: true,
     })
-      .populate("author", "name photo")
+      .populate("author", "name email role profileImage")
       .sort({ createdAt: 1 });
 
     res.status(200).json({
