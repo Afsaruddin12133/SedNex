@@ -41,7 +41,7 @@ const getAllUsers = async (req, res) => {
 // =======================
 const updateUserRole = async (req, res) => {
   try {
-    const { userId } = req.params; 
+    const { userId } = req.params;
     const { role } = req.body;
 
   
@@ -51,13 +51,13 @@ const updateUserRole = async (req, res) => {
       return res.status(400).json({ message: "Invalid role" });
     }
     
-    if (req.authUser.uid.toString() === userId) {
+    if (req.authUser.userId.toString() === userId) {
       return res.status(400).json({
         message: "You cannot change your own role",
       });
     }
 
-    const user = await User.findOne({ firebaseUid: userId });
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -75,6 +75,37 @@ const updateUserRole = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update role",
+    });
+  }
+};
+
+// =======================
+// Delete User (Admin Only)
+// =======================
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (req.authUser.userId.toString() === userId) {
+      return res.status(400).json({
+        message: "You cannot delete your own account",
+      });
+    }
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete user",
     });
   }
 };
@@ -128,5 +159,6 @@ const updateUserProfile = async (req, res) => {
 module.exports = {
   getAllUsers,
   updateUserRole,
+  deleteUser,
   updateUserProfile,
 };

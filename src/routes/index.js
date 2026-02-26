@@ -10,6 +10,7 @@ const categoryRoutes = require("./category.routes");
 const sectionRoutes = require("./section.routes");
 const learnArabicRoutes = require("./learnArabic.routes");
 const homepageRoutes = require("./homepage.routes");
+const goodsRoutes = require("./goods.routes");
 
 
 const router = express.Router();
@@ -25,6 +26,7 @@ router.use("/categories", categoryRoutes);
 router.use("/sections", sectionRoutes);
 router.use("/learn-arabic", learnArabicRoutes);
 router.use("/homepage", homepageRoutes);
+router.use("/goods", goodsRoutes);
 
 
 module.exports = router;

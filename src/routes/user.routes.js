@@ -1,8 +1,12 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
-const { updateUserRole, updateUserProfile } = require("../controllers/user.controller");
-const { getAllUsers } = require("../controllers/user.controller");
+const {
+  updateUserRole,
+  updateUserProfile,
+  deleteUser,
+  getAllUsers,
+} = require("../controllers/user.controller");
 const upload = require("../middlewares/upload");
 
 const router = express.Router();
@@ -28,6 +32,14 @@ router.patch(
   authMiddleware,
   upload.single("profileImage"),
   updateUserProfile
+);
+
+// Delete User...
+router.delete(
+  "/:userId",
+  authMiddleware,
+  adminMiddleware,
+  deleteUser
 );
 
 module.exports = router;
