@@ -11,6 +11,7 @@ const sectionRoutes = require("./section.routes");
 const learnArabicRoutes = require("./learnArabic.routes");
 const homepageRoutes = require("./homepage.routes");
 const goodsRoutes = require("./goods.routes");
+const localTourRoutes = require("./localTour.routes");
 
 
 const router = express.Router();
@@ -27,6 +28,7 @@ router.use("/sections", sectionRoutes);
 router.use("/learn-arabic", learnArabicRoutes);
 router.use("/homepage", homepageRoutes);
 router.use("/goods", goodsRoutes);
+router.use("/local-tour", localTourRoutes);
 
 
 module.exports = router;

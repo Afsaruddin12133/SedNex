@@ -1,6 +1,7 @@
 const Terms = require("../models/Terms");
 const Contact = require("../models/Contact");
 const Faq = require("../models/Faq");
+const Team = require("../models/Team");
 
 const createTerms = async (req, res) => {
   try {
@@ -557,6 +558,231 @@ const deleteFaq = async (req, res) => {
   }
 };
 
+const normalizeString = (value) => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  const trimmed = String(value).trim();
+  return trimmed.length ? trimmed : undefined;
+};
+
+const getTeamImage = (req) => {
+  return req.file?.path || normalizeString(req.body?.image) || normalizeString(req.body?.employeeImage);
+};
+
+const createTeamMember = async (req, res) => {
+  try {
+    const name = normalizeString(req.body?.name || req.body?.employeeName);
+    const designation = normalizeString(
+      req.body?.designation || req.body?.employeeDesignation
+    );
+    const about = normalizeString(req.body?.about || req.body?.employeeAbout);
+    const image = getTeamImage(req);
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "Employee name is required",
+      });
+    }
+
+    if (!image) {
+      return res.status(400).json({
+        success: false,
+        message: "Employee image is required",
+      });
+    }
+
+    if (!designation) {
+      return res.status(400).json({
+        success: false,
+        message: "Employee designation is required",
+      });
+    }
+
+    if (!about) {
+      return res.status(400).json({
+        success: false,
+        message: "Employee about is required",
+      });
+    }
+
+    const member = await Team.create({
+      name,
+      image,
+      designation,
+      about,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Team member created successfully",
+      member,
+    });
+  } catch (error) {
+    console.error("Create Team Member Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create team member",
+    });
+  }
+};
+
+const getTeamMembers = async (req, res) => {
+  try {
+    const members = await Team.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      total: members.length,
+      members,
+    });
+  } catch (error) {
+    console.error("Get Team Members Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch team members",
+    });
+  }
+};
+
+const getTeamMemberById = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const member = await Team.findById(teamId);
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "Team member not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      member,
+    });
+  } catch (error) {
+    console.error("Get Team Member Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch team member",
+    });
+  }
+};
+
+const updateTeamMember = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+
+    const name = normalizeString(req.body?.name || req.body?.employeeName);
+    const designation = normalizeString(
+      req.body?.designation || req.body?.employeeDesignation
+    );
+    const about = normalizeString(req.body?.about || req.body?.employeeAbout);
+    const image = getTeamImage(req);
+
+    const updateDoc = {};
+
+    if (name !== undefined) {
+      if (!name) {
+        return res.status(400).json({
+          success: false,
+          message: "Employee name cannot be empty",
+        });
+      }
+      updateDoc.name = name;
+    }
+
+    if (designation !== undefined) {
+      if (!designation) {
+        return res.status(400).json({
+          success: false,
+          message: "Employee designation cannot be empty",
+        });
+      }
+      updateDoc.designation = designation;
+    }
+
+    if (about !== undefined) {
+      if (!about) {
+        return res.status(400).json({
+          success: false,
+          message: "Employee about cannot be empty",
+        });
+      }
+      updateDoc.about = about;
+    }
+
+    if (image !== undefined) {
+      if (!image) {
+        return res.status(400).json({
+          success: false,
+          message: "Employee image cannot be empty",
+        });
+      }
+      updateDoc.image = image;
+    }
+
+    if (Object.keys(updateDoc).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide at least one field to update",
+      });
+    }
+
+    const member = await Team.findByIdAndUpdate(
+      teamId,
+      { $set: updateDoc },
+      { new: true, runValidators: true }
+    );
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "Team member not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Team member updated successfully",
+      member,
+    });
+  } catch (error) {
+    console.error("Update Team Member Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update team member",
+    });
+  }
+};
+
+const deleteTeamMember = async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const member = await Team.findByIdAndDelete(teamId);
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "Team member not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Team member deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Team Member Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete team member",
+    });
+  }
+};
+
 module.exports = {
   createTerms,
   updateTerms,
@@ -570,4 +796,9 @@ module.exports = {
   updateFaq,
   getFaqs,
   deleteFaq,
+  createTeamMember,
+  getTeamMembers,
+  getTeamMemberById,
+  updateTeamMember,
+  deleteTeamMember,
 };
