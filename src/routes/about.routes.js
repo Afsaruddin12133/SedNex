@@ -34,7 +34,6 @@ router.patch(
 
 router.get(
   "/terms",
-  authMiddleware,
   getTerms
 );
 
@@ -61,7 +60,6 @@ router.patch(
 
 router.get(
   "/contact",
-  authMiddleware,
   getContact
 );
 

@@ -9,6 +9,7 @@ const router = express.Router();
 router.post(
     "/", 
     authMiddleware,
+    adminMiddleware,
     createArticle,
 );
 
@@ -27,6 +28,7 @@ router.get(
 router.patch(
     "/:articleId",
     authMiddleware,
+    adminMiddleware,
     updateArticle,
 );
 
