@@ -72,69 +72,104 @@ const createTerms = async (req, res) => {
 
 const updateTerms = async (req, res) => {
   try {
-    const { title, content, version } = req.body;
+    const terms = Array.isArray(req.body) ? req.body : null;
 
-    if (
-      (title === undefined || title === null) &&
-      (content === undefined || content === null) &&
-      (version === undefined || version === null)
-    ) {
+    if (!terms || terms.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Provide at least one field to update",
+        message: "Terms array is required",
       });
     }
 
-    const terms = await Terms.findOne();
+    const normalizedUpdates = terms.map((item) => ({
+      version: item?.version ? String(item.version).trim() : "",
+      title:
+        item?.title !== undefined ? String(item.title).trim() : undefined,
+      content:
+        item?.content !== undefined ? String(item.content).trim() : undefined,
+    }));
 
-    if (!terms) {
-      return res.status(404).json({
-        success: false,
-        message: "Terms not found",
-      });
-    }
+    for (let i = 0; i < normalizedUpdates.length; i += 1) {
+      const item = normalizedUpdates[i];
 
-    if (title !== undefined) {
-      if (!title || title.trim() === "") {
+      if (!item.version) {
         return res.status(400).json({
           success: false,
-          message: "Title cannot be empty",
+          message: `Version is required for item ${i + 1}`,
         });
       }
-      terms.title = title.trim();
-    }
 
-    if (content !== undefined) {
-      if (!content || content.trim() === "") {
+      if (item.title !== undefined && !item.title) {
         return res.status(400).json({
           success: false,
-          message: "Content cannot be empty",
+          message: `Title cannot be empty for item ${i + 1}`,
         });
       }
-      terms.content = content.trim();
-    }
 
-    if (version !== undefined) {
-      if (!version || version.trim() === "") {
+      if (item.content !== undefined && !item.content) {
         return res.status(400).json({
           success: false,
-          message: "Version cannot be empty",
+          message: `Content cannot be empty for item ${i + 1}`,
         });
       }
-      terms.version = version.trim();
+
+      if (item.title === undefined && item.content === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: `Provide title or content for item ${i + 1}`,
+        });
+      }
     }
 
-    await terms.save();
+    const versions = normalizedUpdates.map((item) => item.version);
+    const existing = await Terms.find({ version: { $in: versions } });
+    const existingVersions = new Set(existing.map((item) => item.version));
+
+    for (let i = 0; i < versions.length; i += 1) {
+      if (!existingVersions.has(versions[i])) {
+        return res.status(404).json({
+          success: false,
+          message: `Terms not found for version ${versions[i]}`,
+        });
+      }
+    }
+
+    const operations = normalizedUpdates.map((item) => {
+      const updateDoc = {};
+
+      if (item.title !== undefined) {
+        updateDoc.title = item.title;
+      }
+
+      if (item.content !== undefined) {
+        updateDoc.content = item.content;
+      }
+
+      return {
+        updateOne: {
+          filter: { version: item.version },
+          update: { $set: updateDoc },
+        },
+      };
+    });
+
+    await Terms.bulkWrite(operations, { ordered: true });
+
+    const updatedTerms = await Terms.find({ version: { $in: versions } }).sort({
+      createdAt: -1,
+    });
 
     return res.status(200).json({
       success: true,
       message: "Terms updated successfully",
-      terms: {
-        title: terms.title,
-        content: terms.content,
-        version: terms.version,
-        lastUpdated: terms.updatedAt,
-      },
+      total: updatedTerms.length,
+      terms: updatedTerms.map((item) => ({
+        id: item._id,
+        title: item.title,
+        content: item.content,
+        version: item.version,
+        lastUpdated: item.updatedAt,
+      })),
     });
   } catch (error) {
     console.error("Update Terms Error:", error);
@@ -178,20 +213,40 @@ const getTerms = async (req, res) => {
 
 const deleteTerms = async (req, res) => {
   try {
-    const terms = await Terms.findOne();
+    const versions = Array.isArray(req.body)
+      ? req.body
+      : Array.isArray(req.body?.versions)
+      ? req.body.versions
+      : req.body?.version
+      ? [req.body.version]
+      : [];
 
-    if (!terms) {
+    const normalizedVersions = versions
+      .map((value) => String(value).trim())
+      .filter((value) => value.length > 0);
+
+    if (normalizedVersions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Version list is required",
+      });
+    }
+
+    const result = await Terms.deleteMany({
+      version: { $in: normalizedVersions },
+    });
+
+    if (!result.deletedCount) {
       return res.status(404).json({
         success: false,
         message: "Terms not found",
       });
     }
 
-    await Terms.deleteMany();
-
     return res.status(200).json({
       success: true,
       message: "Terms deleted successfully",
+      deleted: result.deletedCount,
     });
   } catch (error) {
     console.error("Delete Terms Error:", error);
