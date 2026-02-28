@@ -5,52 +5,61 @@ const Team = require("../models/Team");
 
 const createTerms = async (req, res) => {
   try {
-    const { title, content, version } = req.body;
+    const terms = Array.isArray(req.body) ? req.body : null;
 
-    if (!title || title.trim() === "") {
+    if (!terms || terms.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Title is required",
+        message: "Terms array is required",
       });
     }
 
-    if (!content || content.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Content is required",
-      });
+    const normalizedTerms = terms.map((item) => ({
+      title: item?.title ? String(item.title).trim() : "",
+      content: item?.content ? String(item.content).trim() : "",
+      version: item?.version ? String(item.version).trim() : "",
+    }));
+
+    for (let i = 0; i < normalizedTerms.length; i += 1) {
+      const item = normalizedTerms[i];
+
+      if (!item.title) {
+        return res.status(400).json({
+          success: false,
+          message: `Title is required for item ${i + 1}`,
+        });
+      }
+
+      if (!item.content) {
+        return res.status(400).json({
+          success: false,
+          message: `Content is required for item ${i + 1}`,
+        });
+      }
+
+      if (!item.version) {
+        return res.status(400).json({
+          success: false,
+          message: `Version is required for item ${i + 1}`,
+        });
+      }
     }
 
-    if (!version || version.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Version is required",
-      });
-    }
-
-    const existing = await Terms.findOne();
-    if (existing) {
-      return res.status(409).json({
-        success: false,
-        message: "Terms already exist. Use update instead",
-      });
-    }
-
-    const terms = await Terms.create({
-      title: title.trim(),
-      content: content.trim(),
-      version: version.trim(),
+    const createdTerms = await Terms.insertMany(normalizedTerms, {
+      ordered: true,
     });
 
     return res.status(201).json({
       success: true,
       message: "Terms created successfully",
-      terms: {
-        title: terms.title,
-        content: terms.content,
-        version: terms.version,
-        lastUpdated: terms.updatedAt,
-      },
+      total: createdTerms.length,
+      terms: createdTerms.map((item) => ({
+        id: item._id,
+        title: item.title,
+        content: item.content,
+        version: item.version,
+        lastUpdated: item.updatedAt,
+      })),
     });
   } catch (error) {
     console.error("Create Terms Error:", error);
@@ -138,9 +147,9 @@ const updateTerms = async (req, res) => {
 
 const getTerms = async (req, res) => {
   try {
-    const terms = await Terms.findOne();
+    const terms = await Terms.find().sort({ createdAt: -1 });
 
-    if (!terms) {
+    if (!terms.length) {
       return res.status(404).json({
         success: false,
         message: "Terms not found",
@@ -149,12 +158,14 @@ const getTerms = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      terms: {
-        title: terms.title,
-        content: terms.content,
-        version: terms.version,
-        lastUpdated: terms.updatedAt,
-      },
+      total: terms.length,
+      terms: terms.map((item) => ({
+        id: item._id,
+        title: item.title,
+        content: item.content,
+        version: item.version,
+        lastUpdated: item.updatedAt,
+      })),
     });
   } catch (error) {
     console.error("Get Terms Error:", error);
