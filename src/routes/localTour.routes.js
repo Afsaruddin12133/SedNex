@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
+const editorMiddleware = require("../middlewares/editor.middleware");
 const localTourUpload = require("../middlewares/localTourUpload");
 const {
   createLocalTour,
@@ -15,7 +16,7 @@ const router = express.Router();
 router.post(
   "/",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   localTourUpload.single("image"),
   createLocalTour
 );
@@ -33,7 +34,7 @@ router.get(
 router.patch(
   "/:tourId",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   localTourUpload.single("image"),
   updateLocalTour
 );

@@ -1,5 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
+const editorMiddleware = require("../middlewares/editor.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
 const goodsUpload = require("../middlewares/goodsUpload");
 const {
@@ -14,7 +15,7 @@ const router = express.Router();
 router.post(
   "/",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   goodsUpload.single("icon"),
   createBasicGoods
 );
@@ -32,7 +33,7 @@ router.get(
 router.patch(
   "/:goodsId",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   goodsUpload.single("icon"),
   updateGoods
 );

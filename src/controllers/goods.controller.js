@@ -5,12 +5,12 @@ const Goods = require("../models/Goods");
 // =======================
 const createBasicGoods = async (req, res) => {
   try {
-    const { name, price, category } = req.body;
+    const { name, price, category,pricetag } = req.body;
     const icon = req.file ? req.file.path : req.body.icon;
 
-    if (!name || price === undefined || price === null || !icon || !category) {
+    if (!name || price === undefined || price === null || !icon || !category || !pricetag) {
       return res.status(400).json({
-        message: "Name, price, icon, and category are required",
+        message: "Name, price, icon, category, and pricetag are required",
       });
     }
 
@@ -31,6 +31,7 @@ const createBasicGoods = async (req, res) => {
     const goods = await Goods.create({
       name: name.trim(),
       price: numericPrice,
+      pricetag: pricetag.trim(),
       icon: icon.trim(),
       category: category.trim(),
     });
@@ -103,7 +104,7 @@ const getGoodsByCategory = async (req, res) => {
 const updateGoods = async (req, res) => {
   try {
     const { goodsId } = req.params;
-    const { name, price, category } = req.body;
+    const { name, price, category, pricetag } = req.body;
     const icon = req.file ? req.file.path : req.body.icon;
 
     const updates = {};
@@ -143,6 +144,15 @@ const updateGoods = async (req, res) => {
         });
       }
       updates.icon = icon.trim();
+    }
+
+    if (pricetag !== undefined) {
+      if (typeof pricetag !== "string" || !pricetag.trim()) {
+        return res.status(400).json({
+          message: "Pricetag must be a non-empty string",
+        });
+      }
+      updates.pricetag = pricetag.trim();
     }
 
     if (Object.keys(updates).length === 0) {

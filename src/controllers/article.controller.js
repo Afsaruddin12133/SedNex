@@ -93,12 +93,12 @@ const updateArticle = async (req, res) => {
       });
     }
 
-    if (user.role !== "user") {
-      return res.status(403).json({
-        success: false,
-        message: "Only regular users can edit articles",
-      });
-    }
+    // if (user.role !== "user") {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "Only regular users can edit articles",
+    //   });
+    // }
 
     const article = await Article.findById(articleId);
     if (!article) {

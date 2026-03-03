@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
+const editorMiddleware = require("../middlewares/editor.middleware");
 const {
   createProduct,
   getProducts,
@@ -17,7 +18,7 @@ const router = express.Router();
 router.post(
   "/",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   productUpload,
   createProduct
 );
@@ -33,7 +34,7 @@ router.get(
 router.put(
   "/:productId",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   productUpload,
   updateProduct
 );

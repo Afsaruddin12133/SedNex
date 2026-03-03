@@ -21,20 +21,21 @@ const {
   updateTeamMember,
   deleteTeamMember,
 } = require("../controllers/about.controller");
+const editorMiddleware = require("../middlewares/editor.middleware");
 
 const router = express.Router();
 
 router.post(
   "/terms",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   createTerms
 );
 
 router.patch(
   "/terms",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   updateTerms
 );
 
@@ -53,14 +54,14 @@ router.delete(
 router.post(
   "/contact",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   createContact
 );
 
 router.patch(
   "/contact",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   updateContact
 );
 
@@ -79,14 +80,14 @@ router.delete(
 router.post(
   "/faq",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   createFaq
 );
 
 router.patch(
   "/faq/:faqId",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   updateFaq
 );
 
@@ -106,7 +107,7 @@ router.delete(
 router.post(
   "/teams",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   teamUpload.single("image"),
   createTeamMember
 );
@@ -124,7 +125,7 @@ router.get(
 router.patch(
   "/teams/:teamId",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   teamUpload.single("image"),
   updateTeamMember
 );

@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
+const editorMiddleware = require("../middlewares/editor.middleware");
 const {
   uploadSingleSliderImage,
   uploadSingleServiceIcon,
@@ -29,14 +30,14 @@ router.get(
 router.post(
   "/marquees",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   createMarquee
 );
 
 router.patch(
   "/marquees/:marqueeId",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   updateMarquee
 );
 
@@ -48,7 +49,7 @@ router.get(
 router.post(
   "/sliders",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   uploadSingleSliderImage,
   createSlider
 );
@@ -56,7 +57,7 @@ router.post(
 router.patch(
   "/sliders/:sliderId",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   uploadSingleSliderImage,
   updateSlider
 );
@@ -76,7 +77,7 @@ router.get(
 router.post(
   "/services/create",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   uploadSingleServiceIcon,
   createServiceCard
 );
@@ -84,7 +85,7 @@ router.post(
 router.patch(
   "/services/edit/:id",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   uploadSingleServiceIcon,
   updateServiceCard
 );

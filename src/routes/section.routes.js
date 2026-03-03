@@ -1,5 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
+// const editorMiddleware = require("../middlewares/editor.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
 const sectionUpload = require("../middlewares/sectionUpload");
 const {
@@ -14,13 +15,14 @@ const {
   getSectionItemDetails,
   getSectionItemDetailsAdmin,
 } = require("../controllers/sectionDetail.controller");
+const editorMiddleware = require("../middlewares/editor.middleware");
 
 const router = express.Router();
 
 router.post(
   "/",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   createSection
 );
 
@@ -50,14 +52,14 @@ router.get(
 router.post(
   "/:slug/items",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   sectionUpload.single("image"),
   createSectionItem
 );
 router.post(
   "/:slug/items/:itemId/details",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   createSectionItemDetail
 );
 

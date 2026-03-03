@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
+const editorMiddleware = require("../middlewares/editor.middleware");
 const { createArticle, updateArticle, getArticles, getArticleById, deleteArticle } = require("../controllers/article.controller");
 const { toggleSaveArticle } = require("../controllers/savedArticle.controller");
 
@@ -9,7 +10,7 @@ const router = express.Router();
 router.post(
     "/", 
     authMiddleware,
-    adminMiddleware,
+    editorMiddleware,
     createArticle,
 );
 
@@ -28,7 +29,7 @@ router.get(
 router.patch(
     "/:articleId",
     authMiddleware,
-    adminMiddleware,
+    editorMiddleware,
     updateArticle,
 );
 

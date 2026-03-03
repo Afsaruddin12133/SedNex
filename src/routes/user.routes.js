@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
+const userProfileUpdateMiddleware = require("../middlewares/userProfileUpdate.middleware");
 const {
   updateUserRole,
   updateUserProfile,
@@ -30,6 +31,7 @@ router.patch(
 router.patch(
   "/:userId",
   authMiddleware,
+  userProfileUpdateMiddleware,
   upload.single("profileImage"),
   updateUserProfile
 );

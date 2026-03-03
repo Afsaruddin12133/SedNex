@@ -1,19 +1,19 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
-const adminMiddleware = require("../middlewares/admin.middleware");
 const {
   createCategory,
   getCategories,
   createWord,
   getCategoryWords,
 } = require("../controllers/learnArabic.controller");
+const editorMiddleware = require("../middlewares/editor.middleware");
 
 const router = express.Router();
 
 router.post(
   "/categories",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   createCategory
 );
 
@@ -30,7 +30,7 @@ router.get(
 router.post(
   "/categories/:slug/words",
   authMiddleware,
-  adminMiddleware,
+  editorMiddleware,
   createWord
 );
 
