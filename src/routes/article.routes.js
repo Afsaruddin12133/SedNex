@@ -32,6 +32,11 @@ router.post(
 );
 
 router.get(
+    "/category",
+    getCategoryArticle,
+);
+
+router.get(
     "/category/:categoryId",
     getCategoryArticleById,
 );
