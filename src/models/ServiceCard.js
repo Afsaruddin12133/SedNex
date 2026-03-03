@@ -16,6 +16,11 @@ const serviceCardSchema = new mongoose.Schema({
     required: true,
     min: 0.01,
   },
+  priceType: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   time: {
     type: Date,
     required: true,

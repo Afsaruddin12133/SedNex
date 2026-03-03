@@ -34,6 +34,14 @@ const parseTime = (value) => {
   return { value: parsed };
 };
 
+const parsePriceType = (value) => {
+  const trimmed = toTrimmedString(value);
+  if (!trimmed) {
+    return { error: "priceType is required" };
+  }
+  return { value: trimmed };
+};
+
 const createMarquee = async (req, res) => {
   try {
     const text = toTrimmedString(req.body?.text);
@@ -318,6 +326,7 @@ const createServiceCard = async (req, res) => {
     const nameInput = toTrimmedString(req.body?.name);
     const iconInput = req.file?.path || req.file?.secure_url;
     const priceResult = parsePrice(req.body?.price);
+    const priceTypeResult = parsePriceType(req.body?.priceType);
     const timeResult = parseTime(req.body?.time);
 
     if (!nameInput) {
@@ -341,6 +350,13 @@ const createServiceCard = async (req, res) => {
       });
     }
 
+    if (priceTypeResult.error) {
+      return res.status(400).json({
+        success: false,
+        message: priceTypeResult.error,
+      });
+    }
+
     if (timeResult.error) {
       return res.status(400).json({
         success: false,
@@ -352,6 +368,7 @@ const createServiceCard = async (req, res) => {
       name: nameInput,
       icon: iconInput,
       price: priceResult.value,
+      priceType: priceTypeResult.value,
       time: timeResult.value,
       createdAt: new Date(),
     });
@@ -383,12 +400,14 @@ const updateServiceCard = async (req, res) => {
 
     const nameInput = toTrimmedString(req.body?.name);
     const iconInput = req.file?.path || req.file?.secure_url;
+    const priceTypeInput = req.body?.priceType;
 
     if (
       nameInput === undefined &&
       !iconInput &&
       req.body?.price === undefined &&
-      req.body?.time === undefined
+      req.body?.time === undefined &&
+      priceTypeInput === undefined
     ) {
       return res.status(400).json({
         success: false,
@@ -419,6 +438,17 @@ const updateServiceCard = async (req, res) => {
         });
       }
       card.price = priceResult.value;
+    }
+
+    if (priceTypeInput !== undefined) {
+      const priceTypeResult = parsePriceType(priceTypeInput);
+      if (priceTypeResult.error) {
+        return res.status(400).json({
+          success: false,
+          message: priceTypeResult.error,
+        });
+      }
+      card.priceType = priceTypeResult.value;
     }
 
     if (req.body?.time !== undefined) {
