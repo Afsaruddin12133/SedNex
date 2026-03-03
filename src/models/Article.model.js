@@ -3,10 +3,9 @@ const mongoose = require("mongoose");
 const articleSchema = new mongoose.Schema(
   {
     category: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "articaleCategory",
       required: true,
-      trim: true,
-      index: true,
     },
     title: {
       type: String,
