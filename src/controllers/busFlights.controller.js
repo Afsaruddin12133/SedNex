@@ -46,6 +46,115 @@ const createFlightdetails = async (req, res) => {
   }
 };
 
+const getFlightdetails = async (req, res) => {
+  try {
+    const flights = await BusFlight.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      total: flights.length,
+      flights,
+    });
+  } catch (error) {
+    console.error("Get Flight Details Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch flight details",
+    });
+  }
+};
+
+const updateFlightdetails = async (req, res) => {
+  try {
+    const { flightId } = req.params;
+
+    const airlineName = normalizeString(req.body?.airlineName);
+    const airlineImage = req.file?.path || req.file?.secure_url;
+
+    const updateDoc = {};
+
+    if (airlineName !== undefined) {
+      if (!airlineName) {
+        return res.status(400).json({
+          success: false,
+          message: "Airline name cannot be empty",
+        });
+      }
+      updateDoc.airlineName = airlineName;
+    }
+
+    if (airlineImage !== undefined) {
+      if (!airlineImage) {
+        return res.status(400).json({
+          success: false,
+          message: "Airline image cannot be empty",
+        });
+      }
+      updateDoc.airlineImage = airlineImage;
+    }
+
+    if (Object.keys(updateDoc).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide at least one field to update",
+      });
+    }
+
+    const flightDetails = await BusFlight.findByIdAndUpdate(
+      flightId,
+      { $set: updateDoc },
+      { new: true, runValidators: true }
+    );
+
+    if (!flightDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "Flight details not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Flight details updated successfully",
+      flightDetails,
+    });
+  } catch (error) {
+    console.error("Update Flight Details Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update flight details",
+    });
+  }
+};
+
+const deleteFlightdetails = async (req, res) => {
+  try {
+    const { flightId } = req.params;
+    const flightDetails = await BusFlight.findByIdAndDelete(flightId);
+
+    if (!flightDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "Flight details not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Flight details deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Flight Details Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete flight details",
+    });
+  }
+};
+
 module.exports = {
   createFlightdetails,
+  getFlightdetails,
+  updateFlightdetails,
+  deleteFlightdetails,
 };
