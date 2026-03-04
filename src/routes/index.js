@@ -13,6 +13,7 @@ const homepageRoutes = require("./homepage.routes");
 const goodsRoutes = require("./goods.routes");
 const localTourRoutes = require("./localTour.routes");
 const busFlightsRoutes = require("./busFlights.routes");
+const flightRouteRoutes = require("./flightRoute.routes");
 
 
 const router = express.Router();
@@ -31,6 +32,7 @@ router.use("/homepage", homepageRoutes);
 router.use("/goods", goodsRoutes);
 router.use("/local-tour", localTourRoutes);
 router.use("/bus-flights", busFlightsRoutes);
+router.use("/flight-routes", flightRouteRoutes);
 
 
 module.exports = router;
