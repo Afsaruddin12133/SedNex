@@ -34,6 +34,10 @@ const localTourSchema = new mongoose.Schema(
         required: true,
         min: 0,
       },
+      ticketPriceTag: {
+        type: String,
+        trim: true,
+      },
       begins: {
         type: String,
         required: true,

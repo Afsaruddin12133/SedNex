@@ -65,6 +65,7 @@ const createLocalTour = async (req, res) => {
     const tourDistance = normalizeString(req.body?.tourDistance);
     const tourDuration = normalizeString(req.body?.tourDuration);
     const tourTicketPrice = normalizeNumber(req.body?.tourTicketPrice);
+    const tourTicketPriceTag = normalizeString(req.body?.tourTicketPriceTag);
     const tourBegins = normalizeString(req.body?.tourBegins);
     const tourReturn = normalizeString(req.body?.tourReturn);
     const includedWithTickets = normalizeStringArray(req.body?.includedWithTickets);
@@ -120,6 +121,7 @@ const createLocalTour = async (req, res) => {
         distance: tourDistance,
         duration: tourDuration,
         ticketPrice: tourTicketPrice,
+        ticketPriceTag: tourTicketPriceTag,
         begins: tourBegins,
         returnTime: tourReturn,
       },
@@ -194,6 +196,7 @@ const updateLocalTour = async (req, res) => {
     const tourDistance = normalizeString(req.body?.tourDistance);
     const tourDuration = normalizeString(req.body?.tourDuration);
     const tourTicketPrice = normalizeNumber(req.body?.tourTicketPrice);
+    const tourTicketPriceTag = normalizeString(req.body?.tourTicketPriceTag);
     const tourBegins = normalizeString(req.body?.tourBegins);
     const tourReturn = normalizeString(req.body?.tourReturn);
     const includedWithTickets = normalizeStringArray(req.body?.includedWithTickets);
@@ -259,6 +262,16 @@ const updateLocalTour = async (req, res) => {
         });
       }
       updateDoc["info.ticketPrice"] = tourTicketPrice;
+    }
+
+    if (tourTicketPriceTag !== undefined) {
+      if (!tourTicketPriceTag) {
+        return res.status(400).json({
+          success: false,
+          message: "Tour ticket price tag cannot be empty",
+        });
+      }
+      updateDoc["info.ticketPriceTag"] = tourTicketPriceTag;
     }
 
     if (tourBegins !== undefined) {
