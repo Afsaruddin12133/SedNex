@@ -64,6 +64,10 @@ const productSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    priceTage: {
+      type: String,
+      trim: true,
+    },
     discountPrice: {
       type: Number,
       min: 0,
@@ -138,9 +142,23 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-productSchema.pre("validate", function () {
+productSchema.pre("validate", async function () {
   if (this.isModified("name") || !this.slug) {
-    this.slug = slugify(this.name);
+    const baseSlug = slugify(this.name);
+    let candidate = baseSlug;
+    let suffix = 1;
+
+    while (
+      await this.constructor.findOne({
+        slug: candidate,
+        _id: { $ne: this._id },
+      })
+    ) {
+      suffix += 1;
+      candidate = `${baseSlug}-${suffix}`;
+    }
+
+    this.slug = candidate;
   }
 
   if (this.discountPrice !== undefined && this.discountPrice !== null) {

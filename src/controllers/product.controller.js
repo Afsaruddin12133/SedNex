@@ -343,6 +343,7 @@ const createProduct = async (req, res) => {
       name,
       description: trimToUndefined(req.body.description),
       price,
+      priceTage: trimToUndefined(req.body.priceTage),
       discountPrice,
       category: categoryId,
       images,
@@ -544,6 +545,10 @@ const updateProduct = async (req, res) => {
 
     if (req.body.description !== undefined) {
       product.description = trimToUndefined(req.body.description);
+    }
+
+    if (req.body.priceTage !== undefined) {
+      product.priceTage = trimToUndefined(req.body.priceTage);
     }
 
     let priceUpdated;
