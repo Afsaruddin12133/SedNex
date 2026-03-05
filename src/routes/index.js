@@ -14,6 +14,8 @@ const goodsRoutes = require("./goods.routes");
 const localTourRoutes = require("./localTour.routes");
 const busFlightsRoutes = require("./busFlights.routes");
 const flightRouteRoutes = require("./flightRoute.routes");
+const busServicesRoutes = require("./busServices.routes");
+const ramadanTimeRoutes = require("./ramadanTime.routes");
 
 
 const router = express.Router();
@@ -33,6 +35,8 @@ router.use("/goods", goodsRoutes);
 router.use("/local-tour", localTourRoutes);
 router.use("/bus-flights", busFlightsRoutes);
 router.use("/flight-routes", flightRouteRoutes);
+router.use("/bus-services", busServicesRoutes);
+router.use("/ramadan-times", ramadanTimeRoutes);
 
 
 module.exports = router;
