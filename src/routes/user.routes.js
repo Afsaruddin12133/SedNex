@@ -7,6 +7,10 @@ const {
   updateUserProfile,
   deleteUser,
   getAllUsers,
+  createUserWarning,
+  getUserWarnings,
+  updateUserWarning,
+  deleteUserWarning,
 } = require("../controllers/user.controller");
 const upload = require("../middlewares/upload");
 
@@ -25,6 +29,34 @@ router.patch(
   authMiddleware,
   adminMiddleware,
   updateUserRole
+);
+
+// Warnings (Admin Only)...
+router.post(
+  "/:userId/warnings",
+  authMiddleware,
+  adminMiddleware,
+  createUserWarning
+);
+
+router.get(
+  "/:userId/warnings",
+  authMiddleware,
+  getUserWarnings
+);
+
+router.patch(
+  "/:userId/warnings/:warningId",
+  authMiddleware,
+  adminMiddleware,
+  updateUserWarning
+);
+
+router.delete(
+  "/:userId/warnings/:warningId",
+  authMiddleware,
+  adminMiddleware,
+  deleteUserWarning
 );
 
 // Update Users...

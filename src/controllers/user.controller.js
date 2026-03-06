@@ -155,10 +155,164 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+// =======================
+// Create User Warning (Admin Only)
+// =======================
+const createUserWarning = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { message } = req.body;
+
+    if (!message || typeof message !== "string" || !message.trim()) {
+      return res.status(400).json({ message: "Warning message is required" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const warning = {
+      message: message.trim(),
+      createdBy: req.authUser.userId,
+    };
+
+    user.warnings.push(warning);
+    await user.save();
+
+    const createdWarning = user.warnings[user.warnings.length - 1];
+
+    res.status(201).json({
+      success: true,
+      message: "Warning created successfully",
+      warning: createdWarning,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to create warning",
+    });
+  }
+};
+
+// =======================
+// Get User Warnings (Admin Only)
+// =======================
+const getUserWarnings = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const isAdmin = req.authUser && req.authUser.role === "admin";
+    const isOwner = req.authUser && req.authUser.userId.toString() === userId;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const user = await User.findById(userId, { warnings: 1 });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      total: user.warnings.length,
+      warnings: user.warnings,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch warnings",
+    });
+  }
+};
+
+// =======================
+// Update User Warning (Admin Only)
+// =======================
+const updateUserWarning = async (req, res) => {
+  try {
+    const { userId, warningId } = req.params;
+    const { message } = req.body;
+
+    if (!message || typeof message !== "string" || !message.trim()) {
+      return res.status(400).json({ message: "Warning message is required" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const warning = user.warnings.id(warningId);
+
+    if (!warning) {
+      return res.status(404).json({ message: "Warning not found" });
+    }
+
+    warning.message = message.trim();
+    warning.updatedAt = new Date();
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Warning updated successfully",
+      warning,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update warning",
+    });
+  }
+};
+
+// =======================
+// Delete User Warning (Admin Only)
+// =======================
+const deleteUserWarning = async (req, res) => {
+  try {
+    const { userId, warningId } = req.params;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const warning = user.warnings.id(warningId);
+
+    if (!warning) {
+      return res.status(404).json({ message: "Warning not found" });
+    }
+
+    warning.deleteOne();
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Warning deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete warning",
+    });
+  }
+};
+
 
 module.exports = {
   getAllUsers,
   updateUserRole,
   deleteUser,
   updateUserProfile,
+  createUserWarning,
+  getUserWarnings,
+  updateUserWarning,
+  deleteUserWarning,
 };
