@@ -288,6 +288,44 @@ const updateCategoryArticle = async (req, res) => {
 };
 
 // ========================
+// Delete Article Category
+// ========================
+const deleteCategoryArticle = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid category id",
+      });
+    }
+
+    const category = await ArticaleCategory.findById(categoryId);
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    await ArticaleCategory.findByIdAndDelete(categoryId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Category deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Article Category Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete category",
+    });
+  }
+};
+
+// ========================
 // Update Article
 // ========================
 
@@ -500,6 +538,7 @@ module.exports = {
   getCategoryArticle,
   getCategoryArticleById,
   updateCategoryArticle,
+  deleteCategoryArticle,
   createArticle,
   updateArticle,
   getArticles,

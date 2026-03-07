@@ -7,6 +7,7 @@ const {
     getCategoryArticle,
     getCategoryArticleById,
     updateCategoryArticle,
+    deleteCategoryArticle,
     createArticle,
     updateArticle,
     getArticles,
@@ -39,6 +40,13 @@ router.get(
 router.get(
     "/category/:categoryId",
     getCategoryArticleById,
+);
+
+router.delete(
+    "/category/:categoryId",
+    authMiddleware,
+    editorMiddleware,
+    deleteCategoryArticle,
 );
 
 router.get(
