@@ -205,6 +205,26 @@ const getCategoryWords = async (req, res) => {
   }
 };
 
+const getAllWords = async (req, res) => {
+  try {
+    const words = await LearnArabicWord.find()
+      .sort({ english: 1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      total: words.length,
+      words,
+    });
+  } catch (error) {
+    console.error("Get All Learn Arabic Words Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch words",
+    });
+  }
+};
+
 const updateWord = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -491,6 +511,7 @@ module.exports = {
   deleteCategory,
   createWord,
   getCategoryWords,
+  getAllWords,
   updateWord,
   deleteWord,
 };

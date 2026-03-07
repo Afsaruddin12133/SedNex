@@ -8,6 +8,7 @@ const {
   deleteCategory,
   createWord,
   getCategoryWords,
+  getAllWords,
   updateWord,
   deleteWord,
 } = require("../controllers/learnArabic.controller");
@@ -44,6 +45,11 @@ router.delete(
 router.get(
   "/categories/:slug/words",
   getCategoryWords
+);
+
+router.get(
+  "/words",
+  getAllWords
 );
 
 router.post(
