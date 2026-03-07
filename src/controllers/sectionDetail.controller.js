@@ -342,8 +342,232 @@ const getSectionItemDetailsAdmin = async (req, res) => {
   }
 };
 
+const updateSectionItemDetail = async (req, res) => {
+  try {
+    const { slug, itemId, detailId } = req.params;
+    const lookup = await findSectionAndItem(slug, itemId);
+    if (lookup.error) {
+      return res.status(lookup.error.status).json({
+        success: false,
+        message: lookup.error.message,
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(detailId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid detail id",
+      });
+    }
+
+    const { item } = lookup;
+
+    const detail = await SectionItemDetail.findOne({
+      _id: detailId,
+      sectionItemId: item._id,
+    });
+
+    if (!detail) {
+      return res.status(404).json({
+        success: false,
+        message: "Section item detail not found",
+      });
+    }
+
+    const hasBody = req.body && Object.keys(req.body).length > 0;
+    if (!hasBody) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide at least one field to update",
+      });
+    }
+
+    const rawStatus = req.body?.status;
+    if (rawStatus !== undefined) {
+      const normalizedStatus = String(rawStatus).trim().toLowerCase();
+      if (!STATUS_VALUES.has(normalizedStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: `Detail status must be one of: ${Array.from(STATUS_VALUES).join(", ")}`,
+        });
+      }
+      detail.status = normalizedStatus;
+    }
+
+    if (req.body?.contact !== undefined) {
+      const contactInput = req.body.contact;
+      if (!contactInput || typeof contactInput !== "object") {
+        return res.status(400).json({
+          success: false,
+          message: "Contact information is required",
+        });
+      }
+
+      const contact = {
+        mobile: toTrimmedString(contactInput.mobile),
+        direction: toTrimmedString(contactInput.direction),
+        website: toTrimmedString(contactInput.website),
+        email: toTrimmedString(contactInput.email),
+      };
+
+      if (!contact.mobile || !contact.direction || !contact.website || !contact.email) {
+        return res.status(400).json({
+          success: false,
+          message: "Contact must include mobile, direction, website, and email",
+        });
+      }
+
+      detail.contact = contact;
+    }
+
+    if (req.body?.location !== undefined) {
+      const locationInput = req.body.location;
+      if (!locationInput || typeof locationInput !== "object") {
+        return res.status(400).json({
+          success: false,
+          message: "Location information is required",
+        });
+      }
+
+      const locationAddress = toTrimmedString(locationInput.address);
+      if (!locationAddress) {
+        return res.status(400).json({
+          success: false,
+          message: "Location address is required",
+        });
+      }
+
+      const location = {
+        address: locationAddress,
+      };
+
+      const mapUrl = toTrimmedString(locationInput.mapUrl ?? locationInput.mapURL ?? locationInput.map_url);
+      if (mapUrl) {
+        location.mapUrl = mapUrl;
+      }
+
+      const latitude = locationInput.latitude ?? locationInput.lat;
+      const longitude = locationInput.longitude ?? locationInput.lng;
+      const parsedLatitude = latitude !== undefined ? Number(latitude) : undefined;
+      const parsedLongitude = longitude !== undefined ? Number(longitude) : undefined;
+      if (parsedLatitude !== undefined && !Number.isNaN(parsedLatitude)) {
+        location.latitude = parsedLatitude;
+      }
+      if (parsedLongitude !== undefined && !Number.isNaN(parsedLongitude)) {
+        location.longitude = parsedLongitude;
+      }
+
+      detail.location = location;
+    }
+
+    if (req.body?.about !== undefined) {
+      const aboutInput = req.body.about;
+      if (!aboutInput || typeof aboutInput !== "object") {
+        return res.status(400).json({
+          success: false,
+          message: "About information is required",
+        });
+      }
+
+      const aboutDescription = toTrimmedString(aboutInput.description ?? aboutInput.details ?? aboutInput.text);
+      if (!aboutDescription) {
+        return res.status(400).json({
+          success: false,
+          message: "About description is required",
+        });
+      }
+
+      const services = parseServices(aboutInput.services ?? []);
+      if (!services.length) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one service is required",
+        });
+      }
+
+      detail.about = {
+        description: aboutDescription,
+        services,
+      };
+    }
+
+    if (req.body?.offDaySchedules !== undefined) {
+      const schedules = parseSchedules(req.body.offDaySchedules);
+      if (!schedules.length) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one off-day schedule entry is required",
+        });
+      }
+
+      detail.offDaySchedules = schedules;
+    }
+
+    await detail.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Section item detail updated successfully",
+      detail,
+    });
+  } catch (error) {
+    console.error("Update Section Item Detail Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update section item detail",
+    });
+  }
+};
+
+const deleteSectionItemDetail = async (req, res) => {
+  try {
+    const { slug, itemId, detailId } = req.params;
+    const lookup = await findSectionAndItem(slug, itemId);
+    if (lookup.error) {
+      return res.status(lookup.error.status).json({
+        success: false,
+        message: lookup.error.message,
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(detailId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid detail id",
+      });
+    }
+
+    const { item } = lookup;
+
+    const detail = await SectionItemDetail.findOneAndDelete({
+      _id: detailId,
+      sectionItemId: item._id,
+    });
+
+    if (!detail) {
+      return res.status(404).json({
+        success: false,
+        message: "Section item detail not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Section item detail deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Section Item Detail Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete section item detail",
+    });
+  }
+};
+
 module.exports = {
   createSectionItemDetail,
   getSectionItemDetails,
   getSectionItemDetailsAdmin,
+  updateSectionItemDetail,
+  deleteSectionItemDetail,
 };

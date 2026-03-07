@@ -5,15 +5,21 @@ const adminMiddleware = require("../middlewares/admin.middleware");
 const sectionUpload = require("../middlewares/sectionUpload");
 const {
   createSection,
+  updateSection,
+  deleteSection,
   getSections,
   getSectionItems,
   getSectionItemsAdmin,
   createSectionItem,
+  updateSectionItem,
+  deleteSectionItem,
 } = require("../controllers/section.controller");
 const {
   createSectionItemDetail,
   getSectionItemDetails,
   getSectionItemDetailsAdmin,
+  updateSectionItemDetail,
+  deleteSectionItemDetail,
 } = require("../controllers/sectionDetail.controller");
 const editorMiddleware = require("../middlewares/editor.middleware");
 
@@ -26,6 +32,19 @@ router.post(
   createSection
 );
 
+router.patch(
+  "/:sectionId",
+  authMiddleware,
+  editorMiddleware,
+  updateSection
+);
+router.delete(
+  "/:sectionId",
+  authMiddleware,
+  adminMiddleware,
+  deleteSection
+)
+
 router.get(
     "/", 
     getSections
@@ -35,12 +54,7 @@ router.get(
   authMiddleware,
   getSectionItemsAdmin
 );
-// router.get(
-//   "/:slug/items/:itemId/details/admin",
-//   authMiddleware,
-//   adminMiddleware,
-//   getSectionItemDetailsAdmin
-// );
+
 router.get(
   "/:slug/items/:itemId/details",
   getSectionItemDetails
@@ -56,11 +70,42 @@ router.post(
   sectionUpload.single("image"),
   createSectionItem
 );
+
+router.patch(
+  "/:slug/items/:itemId",
+  authMiddleware,
+  editorMiddleware,
+  sectionUpload.single("image"),
+  updateSectionItem
+);
+
+router.delete(
+  "/:slug/items/:itemId",
+  authMiddleware,
+  editorMiddleware,
+  deleteSectionItem
+);
+
+
 router.post(
   "/:slug/items/:itemId/details",
   authMiddleware,
   editorMiddleware,
   createSectionItemDetail
+);
+
+router.patch(
+  "/:slug/items/:itemId/details/:detailId",
+  authMiddleware,
+  editorMiddleware,
+  updateSectionItemDetail
+);
+
+router.delete(
+  "/:slug/items/:itemId/details/:detailId",
+  authMiddleware,
+  editorMiddleware,
+  deleteSectionItemDetail
 );
 
 module.exports = router;

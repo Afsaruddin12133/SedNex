@@ -1,6 +1,7 @@
 const Section = require("../models/Section");
 const SectionItem = require("../models/SectionItem");
 const slugify = require("../utils/slugify");
+const mongoose = require("mongoose");
 
 const STATUS_VALUES = new Set(["active", "inactive"]);
 
@@ -82,6 +83,125 @@ const createSection = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create section",
+    });
+  }
+};
+
+const updateSection = async (req, res) => {
+  try {
+    const { sectionId } = req.params;
+    const { name, status } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(sectionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid section id",
+      });
+    }
+
+    if (name === undefined && status === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide at least one field to update",
+      });
+    }
+
+    const section = await Section.findById(sectionId);
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    if (name !== undefined) {
+      const normalizedName = String(name).trim().toLowerCase();
+      if (!normalizedName) {
+        return res.status(400).json({
+          success: false,
+          message: "Section name is required",
+        });
+      }
+
+      const existing = await Section.findOne({
+        _id: { $ne: section._id },
+        name: normalizedName,
+      });
+
+      if (existing) {
+        return res.status(409).json({
+          success: false,
+          message: "Section already exists",
+        });
+      }
+
+      section.name = normalizedName;
+    }
+
+    if (status !== undefined) {
+      const allowedStatuses = Section.schema.path("status").enumValues;
+      const normalizedStatus = String(status).trim().toLowerCase();
+
+      if (!allowedStatuses.includes(normalizedStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: `Status must be one of: ${allowedStatuses.join(", ")}`,
+        });
+      }
+
+      section.status = normalizedStatus;
+    }
+
+    await section.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Section updated successfully",
+      section,
+    });
+  } catch (error) {
+    console.error("Update Section Error:", error);
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Section already exists",
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update section",
+    });
+  }
+};
+
+const deleteSection = async (req, res) => {
+  try {
+    const { sectionId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(sectionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid section id",
+      });
+    }
+
+    const section = await Section.findByIdAndDelete(sectionId);
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Section deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Section Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete section",
     });
   }
 };
@@ -234,10 +354,174 @@ const createSectionItem = async (req, res) => {
   }
 };
 
+const updateSectionItem = async (req, res) => {
+  try {
+    const { slug, itemId } = req.params;
+    const normalizedSlug = slugify(slug);
+
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid item id",
+      });
+    }
+
+    const section = await Section.findOne({ slug: normalizedSlug });
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    const item = await SectionItem.findOne({
+      _id: itemId,
+      sectionId: section._id,
+    });
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Section item not found",
+      });
+    }
+
+    const { name, status } = req.body;
+    const hasImageUpdate = Boolean(req.file) || req.body?.image !== undefined;
+
+    if (name === undefined && status === undefined && !hasImageUpdate) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide at least one field to update",
+      });
+    }
+
+    if (name !== undefined) {
+      const normalizedName = String(name).trim();
+      if (!normalizedName) {
+        return res.status(400).json({
+          success: false,
+          message: "Item name is required",
+        });
+      }
+
+      const existing = await SectionItem.findOne({
+        _id: { $ne: item._id },
+        sectionId: section._id,
+        name: normalizedName,
+      });
+
+      if (existing) {
+        return res.status(409).json({
+          success: false,
+          message: "Section item already exists",
+        });
+      }
+
+      item.name = normalizedName;
+    }
+
+    if (hasImageUpdate) {
+      const uploadedImage = req.file?.path || req.file?.secure_url;
+      const bodyImage = toTrimmedString(req.body?.image);
+      const image = uploadedImage || bodyImage;
+
+      if (!image) {
+        return res.status(400).json({
+          success: false,
+          message: "Item image is required",
+        });
+      }
+
+      item.image = image;
+    }
+
+    if (status !== undefined) {
+      const normalizedStatus = String(status).trim().toLowerCase();
+      if (!STATUS_VALUES.has(normalizedStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status provided",
+        });
+      }
+      item.status = normalizedStatus;
+    }
+
+    await item.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Section item updated successfully",
+      item,
+    });
+  } catch (error) {
+    console.error("Update Section Item Error:", error);
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Section item already exists",
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update section item",
+    });
+  }
+};
+
+const deleteSectionItem = async (req, res) => {
+  try {
+    const { slug, itemId } = req.params;
+    const normalizedSlug = slugify(slug);
+
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid item id",
+      });
+    }
+
+    const section = await Section.findOne({ slug: normalizedSlug });
+    if (!section) {
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+    }
+
+    const item = await SectionItem.findOneAndDelete({
+      _id: itemId,
+      sectionId: section._id,
+    });
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Section item not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Section item deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Section Item Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete section item",
+    });
+  }
+};
+
 module.exports = {
   createSection,
+  updateSection,
   getSections,
   getSectionItems,
   getSectionItemsAdmin,
   createSectionItem,
+  updateSectionItem,
+  deleteSectionItem,
+  deleteSection,
 };
