@@ -8,6 +8,7 @@ const {
   getGoods,
   getGoodsByCategory,
   updateGoods,
+  deleteGoods,
 } = require("../controllers/goods.controller");
 
 const router = express.Router();
@@ -36,6 +37,13 @@ router.patch(
   editorMiddleware,
   goodsUpload.single("icon"),
   updateGoods
+);
+
+router.delete(
+  "/:goodsId",
+  authMiddleware,
+  adminMiddleware,
+  deleteGoods
 );
 
 module.exports = router;

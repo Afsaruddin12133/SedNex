@@ -186,9 +186,37 @@ const updateGoods = async (req, res) => {
   }
 };
 
+// =======================
+// Delete Goods (Admin)
+// =======================
+const deleteGoods = async (req, res) => {
+  try {
+    const { goodsId } = req.params;
+
+    const goods = await Goods.findByIdAndDelete(goodsId);
+
+    if (!goods) {
+      return res.status(404).json({
+        message: "Goods not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Goods deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete goods",
+    });
+  }
+};
+
 module.exports = {
   createBasicGoods,
   getGoods,
   getGoodsByCategory,
   updateGoods,
+  deleteGoods,
 };
