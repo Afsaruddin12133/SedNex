@@ -14,9 +14,25 @@ const articleSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: true,
       trim: true,
     },
+    content: [
+      {
+        type: {
+          type: String,
+          enum: ["paragraph", "image"],
+          required: true,
+        },
+        data: {
+          type: String,
+          trim: true,
+        },
+        url: {
+          type: String,
+          trim: true,
+        },
+      },
+    ],
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

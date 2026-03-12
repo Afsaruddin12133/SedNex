@@ -4,12 +4,134 @@ const User = require("../models/User");
 const slugify = require("../utils/slugify");
 const mongoose = require("mongoose");
 
+const parseArticleContentInput = (content) => {
+  if (content === undefined) {
+    return { value: undefined };
+  }
+
+  if (content === null) {
+    return { error: "Content must be an array" };
+  }
+
+  if (Array.isArray(content)) {
+    return { value: content };
+  }
+
+  if (typeof content === "string") {
+    const trimmed = content.trim();
+    if (!trimmed.length) {
+      return { value: [] };
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (!Array.isArray(parsed)) {
+        return { error: "Content must be an array" };
+      }
+      return { value: parsed };
+    } catch (error) {
+      return { error: "Content must be a valid JSON array" };
+    }
+  }
+
+  return { error: "Content must be an array" };
+};
+
+const getUploadedImageUrls = (req) => {
+  const files = Array.isArray(req.files) ? req.files : [];
+  return files
+    .map((file) => file?.path || file?.secure_url)
+    .filter((url) => typeof url === "string" && url.trim().length > 0);
+};
+
+const applyUploadedImagesToContent = (content, imageUrls) => {
+  if (!imageUrls.length) {
+    return { content };
+  }
+
+  const imageBlocks = content.filter((block) => block && block.type === "image");
+  if (imageBlocks.length !== imageUrls.length) {
+    return {
+      error: "Number of uploaded images must match number of image blocks",
+    };
+  }
+
+  let imageIndex = 0;
+  const merged = content.map((block) => {
+    if (block && block.type === "image") {
+      const url = imageUrls[imageIndex++];
+      return {
+        ...block,
+        url,
+      };
+    }
+    return block;
+  });
+
+  return { content: merged };
+};
+
+const normalizeArticleContent = (content) => {
+  if (!Array.isArray(content) || content.length === 0) {
+    return {
+      error: "Content must be a non-empty array",
+    };
+  }
+
+  const normalized = content.map((block, index) => {
+    if (!block || typeof block !== "object") {
+      return {
+        error: `Content block ${index + 1} must be an object`,
+      };
+    }
+
+    const { type, data, url } = block;
+
+    if (type !== "paragraph" && type !== "image") {
+      return {
+        error: `Content block ${index + 1} has invalid type`,
+      };
+    }
+
+    if (type === "paragraph") {
+      if (typeof data !== "string" || data.trim() === "") {
+        return {
+          error: `Content block ${index + 1} paragraph data is required`,
+        };
+      }
+
+      return {
+        type,
+        data: data.trim(),
+      };
+    }
+
+    if (typeof url !== "string" || url.trim() === "") {
+      return {
+        error: `Content block ${index + 1} image url is required`,
+      };
+    }
+
+    return {
+      type,
+      url: url.trim(),
+    };
+  });
+
+  const errorBlock = normalized.find((block) => block && block.error);
+  if (errorBlock) {
+    return errorBlock;
+  }
+
+  return { normalized };
+};
+
 // ========================
 // Create Article
 // ========================
 const createArticle = async (req, res) => {
   try {
-    const { category, title, description } = req.body;
+    const { category, title, description, content } = req.body;
 
     if (!category || category.trim() === "") {
       return res.status(400).json({
@@ -25,10 +147,51 @@ const createArticle = async (req, res) => {
       });
     }
 
-    if (!description || description.trim() === "") {
+    const parsedContent = parseArticleContentInput(content);
+    if (parsedContent.error) {
       return res.status(400).json({
         success: false,
-        message: "Article description is required",
+        message: parsedContent.error,
+      });
+    }
+
+    let normalizedContent = parsedContent.value;
+    if (normalizedContent === undefined && typeof description === "string") {
+      const trimmedDescription = description.trim();
+      if (trimmedDescription) {
+        normalizedContent = [
+          {
+            type: "paragraph",
+            data: trimmedDescription,
+          },
+        ];
+      }
+    }
+
+    if (normalizedContent === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Article content is required",
+      });
+    }
+
+    const uploadedImageUrls = getUploadedImageUrls(req);
+    const mergedContent = applyUploadedImagesToContent(
+      normalizedContent,
+      uploadedImageUrls
+    );
+    if (mergedContent.error) {
+      return res.status(400).json({
+        success: false,
+        message: mergedContent.error,
+      });
+    }
+
+    const contentResult = normalizeArticleContent(mergedContent.content);
+    if (contentResult.error) {
+      return res.status(400).json({
+        success: false,
+        message: contentResult.error,
       });
     }
 
@@ -68,7 +231,8 @@ const createArticle = async (req, res) => {
     const article = await Article.create({
       category: existingCategory._id,
       title,
-      description,
+      description: typeof description === "string" ? description.trim() : undefined,
+      content: contentResult.normalized,
       author: user._id,
     });
 
@@ -332,12 +496,13 @@ const deleteCategoryArticle = async (req, res) => {
 const updateArticle = async (req, res) => {
   try {
     const { articleId } = req.params;
-    const { category, title, description } = req.body;
+    const { category, title, description, content } = req.body;
 
     if (
       category === undefined &&
       title === undefined &&
-      description === undefined
+      description === undefined &&
+      content === undefined
     ) {
       return res.status(400).json({
         success: false,
@@ -427,7 +592,47 @@ const updateArticle = async (req, res) => {
           message: "Article description cannot be empty",
         });
       }
-      article.description = description;
+      article.description = description.trim();
+    }
+
+    if (content !== undefined) {
+      const parsedContent = parseArticleContentInput(content);
+      if (parsedContent.error) {
+        return res.status(400).json({
+          success: false,
+          message: parsedContent.error,
+        });
+      }
+
+      const uploadedImageUrls = getUploadedImageUrls(req);
+      const mergedContent = applyUploadedImagesToContent(
+        parsedContent.value,
+        uploadedImageUrls
+      );
+      if (mergedContent.error) {
+        return res.status(400).json({
+          success: false,
+          message: mergedContent.error,
+        });
+      }
+
+      const contentResult = normalizeArticleContent(mergedContent.content);
+      if (contentResult.error) {
+        return res.status(400).json({
+          success: false,
+          message: contentResult.error,
+        });
+      }
+
+      article.content = contentResult.normalized;
+    } else {
+      const uploadedImageUrls = getUploadedImageUrls(req);
+      if (uploadedImageUrls.length) {
+        return res.status(400).json({
+          success: false,
+          message: "Content is required when uploading images",
+        });
+      }
     }
 
     await article.save();

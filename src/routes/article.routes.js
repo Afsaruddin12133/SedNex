@@ -2,6 +2,7 @@ const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
 const editorMiddleware = require("../middlewares/editor.middleware");
+const articleUpload = require("../middlewares/articleUpload");
 const {
     createCategoryArticle,
     getCategoryArticle,
@@ -22,6 +23,7 @@ router.post(
     "/", 
     authMiddleware,
     editorMiddleware,
+    articleUpload.array("images", 10),
     createArticle,
 );
 
@@ -72,6 +74,7 @@ router.patch(
     "/:articleId",
     authMiddleware,
     editorMiddleware,
+    articleUpload.array("images", 10),
     updateArticle,
 );
 
