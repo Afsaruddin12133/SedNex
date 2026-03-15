@@ -359,4 +359,73 @@ const googleLogin = async (req, res) => {
   }
 };
 
-module.exports = { login, register, resetPassword, forgotPassword, verifyResetOtp, googleLogin };
+const facebookLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        message: "token is required",
+      });
+    }
+
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    const provider = decoded?.firebase?.sign_in_provider || "facebook";
+
+    if (!decoded?.email) {
+      return res.status(400).json({
+        message: "Invalid token payload",
+      });
+    }
+
+    let user = await User.findOne({ email: decoded.email });
+
+    if (!user) {
+      user = await User.create({
+        name: null,
+        email: decoded.email,
+        role: "user",
+        country: null,
+        provider,
+      });
+    } else if (!user.provider) {
+      user.provider = provider;
+      await user.save();
+    }
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "JWT secret is not configured" });
+    }
+
+    const appToken = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    return res.status(200).json({
+      message: "Facebook login successful",
+      token: appToken,
+      user: userResponse,
+    });
+  } catch (error) {
+    return res.status(401).json({
+      message: "Facebook login failed",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  login,
+  register,
+  resetPassword,
+  forgotPassword,
+  verifyResetOtp,
+  googleLogin,
+  facebookLogin,
+};
