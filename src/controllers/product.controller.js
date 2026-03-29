@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
 const User = require("../models/User");
+const Contact = require("../models/Contact");
 
 const ALLOWED_BADGES = new Set(["new", "sale", "featured", "limited", "popular"]);
 
@@ -20,6 +21,18 @@ const ensureNumber = (value) => {
   const parsed = Number(value);
   return Number.isNaN(parsed) ? undefined : parsed;
 };
+
+const normalizeWhatsAppNumber = (value) => {
+  const trimmed = trimToUndefined(value);
+  if (!trimmed) {
+    return undefined;
+  }
+  const digitsOnly = trimmed.replace(/\D+/g, "");
+  return digitsOnly.length ? digitsOnly : undefined;
+};
+
+const buildWhatsAppUrl = (number) =>
+  number ? `https://wa.me/${number}` : undefined;
 
 const collectUploadedImages = (files = []) => {
   if (!Array.isArray(files)) {
@@ -437,7 +450,7 @@ const getProducts = async (req, res) => {
 
     const filters = await buildProductFilters(req.query);
 
-    const [products, total] = await Promise.all([
+    const [products, total, contact] = await Promise.all([
       Product.find(filters)
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -445,14 +458,23 @@ const getProducts = async (req, res) => {
         .populate("category", "name slug")
         .lean(),
       Product.countDocuments(filters),
+      Contact.findOne().select("whatsappNumber").lean(),
     ]);
+
+    const whatsappNumber = normalizeWhatsAppNumber(contact?.whatsappNumber);
+    const whatsappUrl = buildWhatsAppUrl(whatsappNumber);
+    const productsWithWhatsApp = products.map((product) => ({
+      ...product,
+      whatsappNumber,
+      whatsappUrl,
+    }));
 
     return res.status(200).json({
       success: true,
       total,
       page,
       totalPages: total ? Math.ceil(total / limit) : 0,
-      products,
+      products: productsWithWhatsApp,
     });
   } catch (error) {
     return res.status(500).json({
@@ -499,15 +521,60 @@ const getProductById = async (req, res) => {
       }
     }
 
+    const contact = await Contact.findOne().select("whatsappNumber").lean();
+    const whatsappNumber = normalizeWhatsAppNumber(contact?.whatsappNumber);
+
     return res.status(200).json({
       success: true,
-      product,
+      product: {
+        ...product.toObject(),
+        whatsappNumber,
+        whatsappUrl: buildWhatsAppUrl(whatsappNumber),
+      },
       isLoved,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch product",
+    });
+  }
+};
+
+const updateProductsWhatsAppNumber = async (req, res) => {
+  try {
+    const whatsappNumber = normalizeWhatsAppNumber(
+      req.body.whatsappNumber ?? req.body.whatsappUrl
+    );
+
+    if (!whatsappNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid whatsappNumber is required",
+      });
+    }
+
+    const contact = await Contact.findOne();
+    if (!contact) {
+      return res.status(404).json({
+        success: false,
+        message: "Contact information not found",
+      });
+    }
+
+    contact.whatsappNumber = whatsappNumber;
+    await contact.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "WhatsApp contact updated successfully",
+      whatsappNumber,
+      whatsappUrl: buildWhatsAppUrl(whatsappNumber),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update WhatsApp contact",
     });
   }
 };
@@ -857,4 +924,5 @@ module.exports = {
   deleteProduct,
   addProductReview,
   toggleProductLove,
+  updateProductsWhatsAppNumber,
 };

@@ -259,7 +259,7 @@ const deleteTerms = async (req, res) => {
 
 const createContact = async (req, res) => {
   try {
-    const { email, mobile, website } = req.body;
+    const { email, mobile, website, whatsappNumber } = req.body;
 
     if (!email || email.trim() === "") {
       return res.status(400).json({
@@ -294,6 +294,7 @@ const createContact = async (req, res) => {
       email: email.trim(),
       mobile: mobile.trim(),
       website: website.trim(),
+      whatsappNumber: whatsappNumber ? String(whatsappNumber).trim() : undefined,
     });
 
     return res.status(201).json({
@@ -303,6 +304,7 @@ const createContact = async (req, res) => {
         email: contact.email,
         mobile: contact.mobile,
         website: contact.website,
+        whatsappNumber: contact.whatsappNumber,
         lastUpdated: contact.updatedAt,
       },
     });
@@ -317,12 +319,13 @@ const createContact = async (req, res) => {
 
 const updateContact = async (req, res) => {
   try {
-    const { email, mobile, website } = req.body;
+    const { email, mobile, website, whatsappNumber } = req.body;
 
     if (
       (email === undefined || email === null) &&
       (mobile === undefined || mobile === null) &&
-      (website === undefined || website === null)
+      (website === undefined || website === null) &&
+      (whatsappNumber === undefined || whatsappNumber === null)
     ) {
       return res.status(400).json({
         success: false,
@@ -369,6 +372,16 @@ const updateContact = async (req, res) => {
       contact.website = website.trim();
     }
 
+    if (whatsappNumber !== undefined) {
+      if (!whatsappNumber || String(whatsappNumber).trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "WhatsApp number cannot be empty",
+        });
+      }
+      contact.whatsappNumber = String(whatsappNumber).trim();
+    }
+
     await contact.save();
 
     return res.status(200).json({
@@ -378,6 +391,7 @@ const updateContact = async (req, res) => {
         email: contact.email,
         mobile: contact.mobile,
         website: contact.website,
+        whatsappNumber: contact.whatsappNumber,
         lastUpdated: contact.updatedAt,
       },
     });
@@ -407,6 +421,7 @@ const getContact = async (req, res) => {
         email: contact.email,
         mobile: contact.mobile,
         website: contact.website,
+        whatsappNumber: contact.whatsappNumber,
         lastUpdated: contact.updatedAt,
       },
     });

@@ -10,6 +10,7 @@ const {
   deleteProduct,
   addProductReview,
   toggleProductLove,
+  updateProductsWhatsAppNumber,
 } = require("../controllers/product.controller");
 const productUpload = require("../middlewares/productUpload");
 
@@ -28,8 +29,14 @@ router.get(
     getProducts
 );
 router.get(
-    "/:productId", 
-    getProductById
+  "/:productId", 
+  getProductById
+);
+router.patch(
+  "/whatsapp",
+  authMiddleware,
+  editorMiddleware,
+  updateProductsWhatsAppNumber
 );
 router.put(
   "/:productId",

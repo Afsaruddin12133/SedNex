@@ -17,6 +17,10 @@ const contactSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    whatsappNumber: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,
