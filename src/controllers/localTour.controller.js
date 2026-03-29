@@ -53,8 +53,30 @@ const normalizeStringArray = (value) => {
   return undefined;
 };
 
+const isValidUrl = (value) => {
+  if (!value) {
+    return false;
+  }
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch (error) {
+    return false;
+  }
+};
+
 const getImageValue = (req) => {
   return req.file?.path || normalizeString(req.body?.image) || normalizeString(req.body?.tourImage);
+};
+
+const normalizeTourStatus = (value) => {
+  const normalized = normalizeString(value);
+  if (!normalized) {
+    return undefined;
+  }
+  const lower = normalized.toLowerCase();
+  const allowed = new Set(["running", "completed", "upcoming"]);
+  return allowed.has(lower) ? lower : undefined;
 };
 
 const createLocalTour = async (req, res) => {
@@ -69,6 +91,8 @@ const createLocalTour = async (req, res) => {
     const tourBegins = normalizeString(req.body?.tourBegins);
     const tourReturn = normalizeString(req.body?.tourReturn);
     const includedWithTickets = normalizeStringArray(req.body?.includedWithTickets);
+    const privacyPolicyUrl = normalizeString(req.body?.privacyPolicyUrl);
+    const tourStatus = normalizeTourStatus(req.body?.tourStatus);
     const image = getImageValue(req);
 
     if (!image) {
@@ -113,6 +137,20 @@ const createLocalTour = async (req, res) => {
       });
     }
 
+    if (!tourStatus) {
+      return res.status(400).json({
+        success: false,
+        message: "Tour status must be running, completed, or upcoming",
+      });
+    }
+
+    if (privacyPolicyUrl && !isValidUrl(privacyPolicyUrl)) {
+      return res.status(400).json({
+        success: false,
+        message: "Privacy policy url must be a valid URL",
+      });
+    }
+
     const tour = await LocalTour.create({
       title,
       image,
@@ -127,6 +165,8 @@ const createLocalTour = async (req, res) => {
       },
       includedWithTickets,
       locationDetails,
+      privacyPolicyUrl,
+      tourStatus,
     });
 
     return res.status(201).json({
@@ -200,6 +240,8 @@ const updateLocalTour = async (req, res) => {
     const tourBegins = normalizeString(req.body?.tourBegins);
     const tourReturn = normalizeString(req.body?.tourReturn);
     const includedWithTickets = normalizeStringArray(req.body?.includedWithTickets);
+    const privacyPolicyUrl = normalizeString(req.body?.privacyPolicyUrl);
+    const tourStatus = normalizeTourStatus(req.body?.tourStatus);
     const image = getImageValue(req);
 
     const updateDoc = {};
@@ -306,6 +348,32 @@ const updateLocalTour = async (req, res) => {
         });
       }
       updateDoc.image = image;
+    }
+
+    if (privacyPolicyUrl !== undefined) {
+      if (!privacyPolicyUrl) {
+        return res.status(400).json({
+          success: false,
+          message: "Privacy policy url cannot be empty",
+        });
+      }
+      if (!isValidUrl(privacyPolicyUrl)) {
+        return res.status(400).json({
+          success: false,
+          message: "Privacy policy url must be a valid URL",
+        });
+      }
+      updateDoc.privacyPolicyUrl = privacyPolicyUrl;
+    }
+
+    if (req.body?.tourStatus !== undefined) {
+      if (!tourStatus) {
+        return res.status(400).json({
+          success: false,
+          message: "Tour status must be running, completed, or upcoming",
+        });
+      }
+      updateDoc.tourStatus = tourStatus;
     }
 
     if (Object.keys(updateDoc).length === 0) {

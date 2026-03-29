@@ -59,6 +59,17 @@ const localTourSchema = new mongoose.Schema(
       trim: true,
       maxlength: 4000,
     },
+    privacyPolicyUrl: {
+      type: String,
+      trim: true,
+    },
+    tourStatus: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      enum: ["running", "completed", "upcoming"],
+    },
   },
   { timestamps: true }
 );
