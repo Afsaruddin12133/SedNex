@@ -1,10 +1,12 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const adminMiddleware = require("../middlewares/admin.middleware");
+const editorMiddleware = require("../middlewares/editor.middleware");
 const userProfileUpdateMiddleware = require("../middlewares/userProfileUpdate.middleware");
 const {
   updateUserRole,
   updateUserProfile,
+  updateUserPasswordByAdmin,
   deleteUser,
   getAllUsers,
   createUserWarning,
@@ -66,6 +68,14 @@ router.patch(
   userProfileUpdateMiddleware,
   upload.single("profileImage"),
   updateUserProfile
+);
+
+// Update User Password (Admin/Editor)...
+router.patch(
+  "/:userId/password",
+  authMiddleware,
+  editorMiddleware,
+  updateUserPasswordByAdmin
 );
 
 // Delete User...

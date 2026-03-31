@@ -1,8 +1,10 @@
 const express = require("express");
+const authMiddleware = require("../middlewares/auth.middleware");
 const {
 	login,
 	register,
 	resetPassword,
+	changePassword,
 	forgotPassword,
 	verifyResetOtp,
 	googleLogin,
@@ -18,6 +20,9 @@ router.post("/facebook-login", facebookLogin);
 router.post("/forgot-password", forgotPassword);
 router.post("/otp-verification", verifyResetOtp);
 router.post("/reset-password", resetPassword);
+router.post("/change-password", authMiddleware, changePassword);
+
+
 
 
 module.exports = router;

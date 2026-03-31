@@ -121,6 +121,57 @@ const login = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    if (!oldPassword) {
+      return res.status(400).json({ message: "oldPassword is required" });
+    }
+
+    if (!newPassword) {
+      return res.status(400).json({ message: "newPassword is required" });
+    }
+
+    if (!confirmPassword) {
+      return res.status(400).json({ message: "confirmPassword is required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "New Passwords do not match" });
+    }
+
+    const user = await User.findById(req.authUser.userId).select("+password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.password) {
+      return res.status(400).json({
+        message: "Password change not available for this account",
+      });
+    }
+
+    const isValidPassword = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isValidPassword) {
+      return res.status(401).json({ message: "Old password is incorrect" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to update password",
+      error: error.message,
+    });
+  }
+};
+
 const resetPassword = async (req, res) => {
   try {
     const { token, newPassword, confirmPassword } = req.body;
@@ -424,6 +475,7 @@ module.exports = {
   login,
   register,
   resetPassword,
+  changePassword,
   forgotPassword,
   verifyResetOtp,
   googleLogin,
