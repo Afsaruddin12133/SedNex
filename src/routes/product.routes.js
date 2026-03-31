@@ -5,6 +5,7 @@ const editorMiddleware = require("../middlewares/editor.middleware");
 const {
   createProduct,
   getProducts,
+  getLovedProducts,
   getProductById,
   updateProduct,
   deleteProduct,
@@ -28,6 +29,12 @@ router.get(
     // authMiddleware,
     getProducts
 );
+router.get(
+  "/love",
+  authMiddleware,
+  getLovedProducts
+);
+
 router.get(
   "/:productId", 
   getProductById

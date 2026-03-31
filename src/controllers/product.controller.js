@@ -484,6 +484,67 @@ const getProducts = async (req, res) => {
   }
 };
 
+const getLovedProducts = async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(
+      Math.max(parseInt(req.query.limit, 10) || 10, 1),
+      100
+    );
+    const skip = (page - 1) * limit;
+
+    if (!req.authUser) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const user = await User.findOne({ firebaseUid: req.authUser.uid }, "_id");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const filters = await buildProductFilters(req.query);
+    filters.likedBy = user._id;
+
+    const [products, total, contact] = await Promise.all([
+      Product.find(filters)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("category", "name slug")
+        .lean(),
+      Product.countDocuments(filters),
+      Contact.findOne().select("whatsappNumber").lean(),
+    ]);
+
+    const whatsappNumber = normalizeWhatsAppNumber(contact?.whatsappNumber);
+    const whatsappUrl = buildWhatsAppUrl(whatsappNumber);
+    const productsWithWhatsApp = products.map((product) => ({
+      ...product,
+      whatsappNumber,
+      whatsappUrl,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      total,
+      page,
+      totalPages: total ? Math.ceil(total / limit) : 0,
+      products: productsWithWhatsApp,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch loved products",
+    });
+  }
+};
+
 const getProductById = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -919,6 +980,7 @@ const toggleProductLove = async (req, res) => {
 module.exports = {
   createProduct,
   getProducts,
+  getLovedProducts,
   getProductById,
   updateProduct,
   deleteProduct,
