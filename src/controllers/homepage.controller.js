@@ -1,6 +1,8 @@
 const HomepageMarquee = require("../models/HomepageMarquee");
 const HomepageSlider = require("../models/HomepageSlider");
 const ServiceCard = require("../models/ServiceCard");
+const GoldRate = require("../models/GoldRate");
+const { safeCreateGlobalNotification } = require("../services/notification.service");
 
 const STATUS_VALUES = new Set(["active", "inactive"]);
 
@@ -38,6 +40,25 @@ const parsePriceType = (value) => {
   const trimmed = toTrimmedString(value);
   if (!trimmed) {
     return { error: "priceType is required" };
+  }
+  return { value: trimmed };
+};
+
+const parseCarat = (value) => {
+  if (value === undefined || value === null || value === "") {
+    return { error: "carat is required" };
+  }
+  const parsed = Number(value);
+  if (Number.isNaN(parsed) || !Number.isFinite(parsed) || parsed <= 0) {
+    return { error: "carat must be a positive number" };
+  }
+  return { value: parsed };
+};
+
+const parseCurrency = (value) => {
+  const trimmed = toTrimmedString(value);
+  if (!trimmed) {
+    return { error: "currency is required" };
   }
   return { value: trimmed };
 };
@@ -521,6 +542,175 @@ const getServiceCards = async (req, res) => {
   }
 };
 
+const createGoldRate = async (req, res) => {
+  try {
+    const caratResult = parseCarat(req.body?.carat);
+    const priceResult = parsePrice(req.body?.price);
+    const currencyResult = parseCurrency(req.body?.currency);
+
+    if (caratResult.error) {
+      return res.status(400).json({
+        success: false,
+        message: caratResult.error,
+      });
+    }
+
+    if (priceResult.error) {
+      return res.status(400).json({
+        success: false,
+        message: priceResult.error,
+      });
+    }
+
+    if (currencyResult.error) {
+      return res.status(400).json({
+        success: false,
+        message: currencyResult.error,
+      });
+    }
+
+    const rate = await GoldRate.create({
+      carat: caratResult.value,
+      price: priceResult.value,
+      currency: currencyResult.value,
+    });
+
+    await safeCreateGlobalNotification({
+      title: "Gold rate updated",
+      message: `${rate.carat} carat: ${rate.price} ${rate.currency}`,
+      type: "gold-rate",
+      entityType: "gold-rate",
+      entityId: rate._id,
+    });
+
+    return res.status(201).json({
+      success: true,
+      rate,
+    });
+  } catch (error) {
+    console.error("Create Gold Rate Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create gold rate",
+    });
+  }
+};
+
+const updateGoldRate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const rate = await GoldRate.findById(id);
+
+    if (!rate) {
+      return res.status(404).json({
+        success: false,
+        message: "Gold rate not found",
+      });
+    }
+
+    if (
+      req.body?.carat === undefined &&
+      req.body?.price === undefined &&
+      req.body?.currency === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields provided for update",
+      });
+    }
+
+    if (req.body?.carat !== undefined) {
+      const caratResult = parseCarat(req.body?.carat);
+      if (caratResult.error) {
+        return res.status(400).json({
+          success: false,
+          message: caratResult.error,
+        });
+      }
+      rate.carat = caratResult.value;
+    }
+
+    if (req.body?.price !== undefined) {
+      const priceResult = parsePrice(req.body?.price);
+      if (priceResult.error) {
+        return res.status(400).json({
+          success: false,
+          message: priceResult.error,
+        });
+      }
+      rate.price = priceResult.value;
+    }
+
+    if (req.body?.currency !== undefined) {
+      const currencyResult = parseCurrency(req.body?.currency);
+      if (currencyResult.error) {
+        return res.status(400).json({
+          success: false,
+          message: currencyResult.error,
+        });
+      }
+      rate.currency = currencyResult.value;
+    }
+
+    await rate.save();
+
+    return res.status(200).json({
+      success: true,
+      rate,
+    });
+  } catch (error) {
+    console.error("Update Gold Rate Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update gold rate",
+    });
+  }
+};
+
+const deleteGoldRate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const rate = await GoldRate.findById(id);
+
+    if (!rate) {
+      return res.status(404).json({
+        success: false,
+        message: "Gold rate not found",
+      });
+    }
+
+    await rate.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Gold rate deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Gold Rate Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete gold rate",
+    });
+  }
+};
+
+const getGoldRates = async (req, res) => {
+  try {
+    const rates = await GoldRate.find().sort({ carat: -1, createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      rates,
+    });
+  } catch (error) {
+    console.error("Get Gold Rates Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch gold rates",
+    });
+  }
+};
+
 module.exports = {
   createMarquee,
   getPublicMarquees,
@@ -533,4 +723,8 @@ module.exports = {
   updateServiceCard,
   deleteServiceCard,
   getServiceCards,
+  createGoldRate,
+  updateGoldRate,
+  deleteGoldRate,
+  getGoldRates,
 };

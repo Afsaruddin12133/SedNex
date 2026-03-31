@@ -18,6 +18,10 @@ const {
   updateServiceCard,
   deleteServiceCard,
   getServiceCards,
+  createGoldRate,
+  updateGoldRate,
+  deleteGoldRate,
+  getGoldRates,
 } = require("../controllers/homepage.controller");
 
 const router = express.Router();
@@ -95,6 +99,32 @@ router.delete(
   authMiddleware,
   adminMiddleware,
   deleteServiceCard
+);
+
+router.get(
+  "/gold-rate",
+  getGoldRates
+);
+
+router.post(
+  "/gold-rate",
+  authMiddleware,
+  editorMiddleware,
+  createGoldRate
+);
+
+router.patch(
+  "/gold-rate/:id",
+  authMiddleware,
+  editorMiddleware,
+  updateGoldRate
+);
+
+router.delete(
+  "/gold-rate/:id",
+  authMiddleware,
+  adminMiddleware,
+  deleteGoldRate
 );
 
 

@@ -1,6 +1,7 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
 const Comment = require("../models/Comment");
+const { safeCreateGlobalNotification } = require("../services/notification.service");
 
 // ========================
 // Create Post
@@ -41,6 +42,14 @@ const createPost = async (req, res) => {
       category: lowerCategory,
       description,
       images: files.map((file) => file.path || file.secure_url),
+    });
+
+    await safeCreateGlobalNotification({
+      title: "New post created",
+      message: "A new post has been published",
+      type: "post",
+      entityType: "post",
+      entityId: post._id,
     });
 
     res.status(201).json({

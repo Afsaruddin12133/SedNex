@@ -3,6 +3,7 @@ const ArticaleCategory = require("../models/ArticaleCategory");
 const User = require("../models/User");
 const slugify = require("../utils/slugify");
 const mongoose = require("mongoose");
+const { safeCreateGlobalNotification } = require("../services/notification.service");
 
 const parseArticleContentInput = (content) => {
   if (content === undefined) {
@@ -234,6 +235,14 @@ const createArticle = async (req, res) => {
       description: typeof description === "string" ? description.trim() : undefined,
       content: contentResult.normalized,
       author: user._id,
+    });
+
+    await safeCreateGlobalNotification({
+      title: "New article posted",
+      message: `Article: ${article.title}`,
+      type: "article",
+      entityType: "article",
+      entityId: article._id,
     });
 
     return res.status(201).json({

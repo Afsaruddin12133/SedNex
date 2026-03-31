@@ -1,4 +1,5 @@
 const LocalTour = require("../models/LocalTour");
+const { safeCreateGlobalNotification } = require("../services/notification.service");
 
 const normalizeString = (value) => {
   if (value === undefined || value === null) {
@@ -167,6 +168,14 @@ const createLocalTour = async (req, res) => {
       locationDetails,
       privacyPolicyUrl,
       tourStatus,
+    });
+
+    await safeCreateGlobalNotification({
+      title: "New local tour created",
+      message: `Tour: ${tour.title}`,
+      type: "local-tour",
+      entityType: "local-tour",
+      entityId: tour._id,
     });
 
     return res.status(201).json({
