@@ -545,13 +545,6 @@ const updateArticle = async (req, res) => {
       });
     }
 
-    if (article.author.toString() !== user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: "You can only edit your own article",
-      });
-    }
-
     if (category !== undefined) {
       if (!category || category.toString().trim() === "") {
         return res.status(400).json({
