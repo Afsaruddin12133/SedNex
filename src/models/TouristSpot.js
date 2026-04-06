@@ -11,13 +11,11 @@ const touristSpotSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 200,
     },
     description: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 2000,
     },
     image: {
       type: String,
