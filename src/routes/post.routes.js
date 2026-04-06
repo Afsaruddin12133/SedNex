@@ -1,7 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const { uploadPostImages } = require("../middlewares/postUploads");
-const { createPost, getPosts, toggleLove, getPostById, deletePost, getPostsByCategory, updatePost } = require("../controllers/post.controller");
+const { createPost, getPosts, toggleLove, getPostById, deletePost, getPostsByCategory, updatePost, getMyPosts } = require("../controllers/post.controller");
 const { createComment, getPostComments, getReplies } = require("../controllers/comment.controller");
 const { toggleSavePost } = require("../controllers/savedPost.controller");
 const adminMiddleware = require("../middlewares/admin.middleware");
@@ -28,6 +28,13 @@ router.get(
 // ========================
 // Get Posts By Id
 // ========================
+
+router.get(
+    "/me",
+    authMiddleware,
+    getMyPosts
+);
+
 router.get(
     "/:postId",
     getPostById

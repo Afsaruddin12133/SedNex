@@ -360,6 +360,47 @@ const updatePost = async (req, res) => {
   }
 };
 
+// ========================
+// Get My Posts
+// ========================
+const getMyPosts = async (req, res) => {
+  try {
+    const userId = req.authUser.userId;
+    const { page = 1, limit = 10 } = req.query;
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const totalPosts = await Post.countDocuments({
+      author: userId,
+      isActive: true,
+    });
+
+    const posts = await Post.find({
+      author: userId,
+      isActive: true,
+    })
+      .populate("author", "name email role profileImage")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNumber);
+
+    res.status(200).json({
+      success: true,
+      totalPosts,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(totalPosts / limitNumber),
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user posts",
+    });
+  }
+};
+
 module.exports = {
   createPost,
   getPosts,
@@ -368,4 +409,5 @@ module.exports = {
   deletePost,
   getPostsByCategory,
   updatePost,
+  getMyPosts,
 };
