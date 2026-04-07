@@ -96,52 +96,10 @@ const createLocalTour = async (req, res) => {
     const tourStatus = normalizeTourStatus(req.body?.tourStatus);
     const image = getImageValue(req);
 
-    if (!image) {
-      return res.status(400).json({
-        success: false,
-        message: "Tour image is required",
-      });
-    }
-
-    if (!title) {
-      return res.status(400).json({
-        success: false,
-        message: "Tour title is required",
-      });
-    }
-
-    if (!tourDate || !tourDistance || !tourDuration || !tourBegins || !tourReturn) {
-      return res.status(400).json({
-        success: false,
-        message: "Tour information is required",
-      });
-    }
-
-    if (tourTicketPrice === undefined || Number.isNaN(tourTicketPrice) || tourTicketPrice < 0) {
+    if (tourTicketPrice !== undefined && (Number.isNaN(tourTicketPrice) || tourTicketPrice < 0)) {
       return res.status(400).json({
         success: false,
         message: "Tour ticket price must be a non-negative number",
-      });
-    }
-
-    if (!includedWithTickets || includedWithTickets.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Included with tickets must have at least one item",
-      });
-    }
-
-    if (!locationDetails) {
-      return res.status(400).json({
-        success: false,
-        message: "Tour location details are required",
-      });
-    }
-
-    if (!tourStatus) {
-      return res.status(400).json({
-        success: false,
-        message: "Tour status must be running, completed, or upcoming",
       });
     }
 
@@ -256,52 +214,22 @@ const updateLocalTour = async (req, res) => {
     const updateDoc = {};
 
     if (title !== undefined) {
-      if (!title) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour title cannot be empty",
-        });
-      }
       updateDoc.title = title;
     }
 
     if (locationDetails !== undefined) {
-      if (!locationDetails) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour location details cannot be empty",
-        });
-      }
       updateDoc.locationDetails = locationDetails;
     }
 
     if (tourDate !== undefined) {
-      if (!tourDate) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour date cannot be empty",
-        });
-      }
       updateDoc["info.date"] = tourDate;
     }
 
     if (tourDistance !== undefined) {
-      if (!tourDistance) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour distance cannot be empty",
-        });
-      }
       updateDoc["info.distance"] = tourDistance;
     }
 
     if (tourDuration !== undefined) {
-      if (!tourDuration) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour duration cannot be empty",
-        });
-      }
       updateDoc["info.duration"] = tourDuration;
     }
 
@@ -316,32 +244,14 @@ const updateLocalTour = async (req, res) => {
     }
 
     if (tourTicketPriceTag !== undefined) {
-      if (!tourTicketPriceTag) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour ticket price tag cannot be empty",
-        });
-      }
       updateDoc["info.ticketPriceTag"] = tourTicketPriceTag;
     }
 
     if (tourBegins !== undefined) {
-      if (!tourBegins) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour begins cannot be empty",
-        });
-      }
       updateDoc["info.begins"] = tourBegins;
     }
 
     if (tourReturn !== undefined) {
-      if (!tourReturn) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour return cannot be empty",
-        });
-      }
       updateDoc["info.returnTime"] = tourReturn;
     }
 
@@ -350,22 +260,10 @@ const updateLocalTour = async (req, res) => {
     }
 
     if (image !== undefined) {
-      if (!image) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour image cannot be empty",
-        });
-      }
       updateDoc.image = image;
     }
 
     if (privacyPolicyUrl !== undefined) {
-      if (!privacyPolicyUrl) {
-        return res.status(400).json({
-          success: false,
-          message: "Privacy policy url cannot be empty",
-        });
-      }
       if (!isValidUrl(privacyPolicyUrl)) {
         return res.status(400).json({
           success: false,
@@ -376,20 +274,7 @@ const updateLocalTour = async (req, res) => {
     }
 
     if (req.body?.tourStatus !== undefined) {
-      if (!tourStatus) {
-        return res.status(400).json({
-          success: false,
-          message: "Tour status must be running, completed, or upcoming",
-        });
-      }
       updateDoc.tourStatus = tourStatus;
-    }
-
-    if (Object.keys(updateDoc).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
     }
 
     const tour = await LocalTour.findByIdAndUpdate(

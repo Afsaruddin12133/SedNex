@@ -8,23 +8,9 @@ const { safeCreateGlobalNotification } = require("../services/notification.servi
 // ========================
 const createPost = async (req, res) => {
   try {
-    const { description,category } = req.body;
-    const lowerCategory = category.toLowerCase();
+    const { description, category } = req.body;
+    const lowerCategory = category ? String(category).toLowerCase() : undefined;
     const files = Array.isArray(req.files) ? req.files : [];
-
-    if (!description || description.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Post description is required",
-      });
-    }
-
-    // if (files.length < 1 || files.length > 4) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "You must upload between 1 and 4 images",
-    //   });
-    // }
 
     const userId = req.authUser.userId;
 
@@ -34,6 +20,13 @@ const createPost = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "User not found",
+      });
+    }
+
+    if(category === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Category is required",
       });
     }
 
@@ -271,17 +264,6 @@ const updatePost = async (req, res) => {
     const { description, category } = req.body;
     const files = Array.isArray(req.files) ? req.files : [];
 
-    if (
-      (description === undefined || description === null) &&
-      (category === undefined || category === null) &&
-      files.length === 0
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field or images to update",
-      });
-    }
-
     if (files.length > 4) {
       return res.status(400).json({
         success: false,
@@ -322,23 +304,11 @@ const updatePost = async (req, res) => {
     }
 
     if (description !== undefined) {
-      if (!description || description.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Post description cannot be empty",
-        });
-      }
       post.description = description;
     }
 
     if (category !== undefined) {
-      if (!category || category.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Post category cannot be empty",
-        });
-      }
-      post.category = category.toLowerCase();
+      post.category = category ? String(category).toLowerCase() : category;
     }
 
     if (files.length > 0) {

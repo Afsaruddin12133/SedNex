@@ -138,106 +138,77 @@ const createSectionItemDetail = async (req, res) => {
     }
 
     const contactInput = req.body?.contact;
-    if (!contactInput || typeof contactInput !== "object") {
-      return res.status(400).json({
-        success: false,
-        message: "Contact information is required",
-      });
-    }
-
-    const contact = {
-      mobile: toTrimmedString(contactInput.mobile),
-      direction: toTrimmedString(contactInput.direction),
-      website: toTrimmedString(contactInput.website),
-      email: toTrimmedString(contactInput.email),
-    };
-
-    if (!contact.mobile || !contact.direction || !contact.website || !contact.email) {
-      return res.status(400).json({
-        success: false,
-        message: "Contact must include mobile, direction, website, and email",
-      });
-    }
+    const contact =
+      contactInput && typeof contactInput === "object"
+        ? {
+            mobile: toTrimmedString(contactInput.mobile),
+            direction: toTrimmedString(contactInput.direction),
+            website: toTrimmedString(contactInput.website),
+            email: toTrimmedString(contactInput.email),
+          }
+        : undefined;
 
     const locationInput = req.body?.location;
-    if (!locationInput || typeof locationInput !== "object") {
-      return res.status(400).json({
-        success: false,
-        message: "Location information is required",
-      });
-    }
+    const location =
+      locationInput && typeof locationInput === "object"
+        ? {
+            address: toTrimmedString(locationInput.address),
+          }
+        : undefined;
 
-    const locationAddress = toTrimmedString(locationInput.address);
-    if (!locationAddress) {
-      return res.status(400).json({
-        success: false,
-        message: "Location address is required",
-      });
-    }
+    if (location && locationInput) {
+      const mapUrl = toTrimmedString(
+        locationInput.mapUrl ?? locationInput.mapURL ?? locationInput.map_url
+      );
+      if (mapUrl) {
+        location.mapUrl = mapUrl;
+      }
 
-    const location = {
-      address: locationAddress,
-    };
-
-    const mapUrl = toTrimmedString(locationInput.mapUrl ?? locationInput.mapURL ?? locationInput.map_url);
-    if (mapUrl) {
-      location.mapUrl = mapUrl;
-    }
-
-    const latitude = locationInput.latitude ?? locationInput.lat;
-    const longitude = locationInput.longitude ?? locationInput.lng;
-    const parsedLatitude = latitude !== undefined ? Number(latitude) : undefined;
-    const parsedLongitude = longitude !== undefined ? Number(longitude) : undefined;
-    if (parsedLatitude !== undefined && !Number.isNaN(parsedLatitude)) {
-      location.latitude = parsedLatitude;
-    }
-    if (parsedLongitude !== undefined && !Number.isNaN(parsedLongitude)) {
-      location.longitude = parsedLongitude;
+      const latitude = locationInput.latitude ?? locationInput.lat;
+      const longitude = locationInput.longitude ?? locationInput.lng;
+      const parsedLatitude = latitude !== undefined ? Number(latitude) : undefined;
+      const parsedLongitude = longitude !== undefined ? Number(longitude) : undefined;
+      if (parsedLatitude !== undefined && !Number.isNaN(parsedLatitude)) {
+        location.latitude = parsedLatitude;
+      }
+      if (parsedLongitude !== undefined && !Number.isNaN(parsedLongitude)) {
+        location.longitude = parsedLongitude;
+      }
     }
 
     const aboutInput = req.body?.about;
-    if (!aboutInput || typeof aboutInput !== "object") {
-      return res.status(400).json({
-        success: false,
-        message: "About information is required",
-      });
-    }
+    const about =
+      aboutInput && typeof aboutInput === "object"
+        ? {
+            description: toTrimmedString(
+              aboutInput.description ?? aboutInput.details ?? aboutInput.text
+            ),
+            services: parseServices(aboutInput.services ?? []),
+          }
+        : undefined;
 
-    const aboutDescription = toTrimmedString(aboutInput.description ?? aboutInput.details ?? aboutInput.text);
-    if (!aboutDescription) {
-      return res.status(400).json({
-        success: false,
-        message: "About description is required",
-      });
-    }
-
-    const services = parseServices(aboutInput.services ?? []);
-    if (!services.length) {
-      return res.status(400).json({
-        success: false,
-        message: "At least one service is required",
-      });
-    }
-
-    const schedules = parseSchedules(req.body?.offDaySchedules ?? aboutInput.offDaySchedules);
-    if (!schedules.length) {
-      return res.status(400).json({
-        success: false,
-        message: "At least one off-day schedule entry is required",
-      });
-    }
+    const schedules = parseSchedules(req.body?.offDaySchedules ?? aboutInput?.offDaySchedules);
 
     const payload = {
       sectionId: section._id,
       sectionItemId: item._id,
-      contact,
-      location,
-      about: {
-        description: aboutDescription,
-        services,
-      },
-      offDaySchedules: schedules,
     };
+
+    if (contact) {
+      payload.contact = contact;
+    }
+
+    if (location) {
+      payload.location = location;
+    }
+
+    if (about) {
+      payload.about = about;
+    }
+
+    if (schedules) {
+      payload.offDaySchedules = schedules;
+    }
 
     if (status) {
       payload.status = status;
@@ -374,14 +345,6 @@ const updateSectionItemDetail = async (req, res) => {
       });
     }
 
-    const hasBody = req.body && Object.keys(req.body).length > 0;
-    if (!hasBody) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
-
     const rawStatus = req.body?.status;
     if (rawStatus !== undefined) {
       const normalizedStatus = String(rawStatus).trim().toLowerCase();
@@ -396,110 +359,65 @@ const updateSectionItemDetail = async (req, res) => {
 
     if (req.body?.contact !== undefined) {
       const contactInput = req.body.contact;
-      if (!contactInput || typeof contactInput !== "object") {
-        return res.status(400).json({
-          success: false,
-          message: "Contact information is required",
-        });
+      if (contactInput && typeof contactInput === "object") {
+        detail.contact = {
+          mobile: toTrimmedString(contactInput.mobile),
+          direction: toTrimmedString(contactInput.direction),
+          website: toTrimmedString(contactInput.website),
+          email: toTrimmedString(contactInput.email),
+        };
+      } else {
+        detail.contact = undefined;
       }
-
-      const contact = {
-        mobile: toTrimmedString(contactInput.mobile),
-        direction: toTrimmedString(contactInput.direction),
-        website: toTrimmedString(contactInput.website),
-        email: toTrimmedString(contactInput.email),
-      };
-
-      if (!contact.mobile || !contact.direction || !contact.website || !contact.email) {
-        return res.status(400).json({
-          success: false,
-          message: "Contact must include mobile, direction, website, and email",
-        });
-      }
-
-      detail.contact = contact;
     }
 
     if (req.body?.location !== undefined) {
       const locationInput = req.body.location;
-      if (!locationInput || typeof locationInput !== "object") {
-        return res.status(400).json({
-          success: false,
-          message: "Location information is required",
-        });
-      }
+      if (locationInput && typeof locationInput === "object") {
+        const location = {
+          address: toTrimmedString(locationInput.address),
+        };
 
-      const locationAddress = toTrimmedString(locationInput.address);
-      if (!locationAddress) {
-        return res.status(400).json({
-          success: false,
-          message: "Location address is required",
-        });
-      }
+        const mapUrl = toTrimmedString(
+          locationInput.mapUrl ?? locationInput.mapURL ?? locationInput.map_url
+        );
+        if (mapUrl) {
+          location.mapUrl = mapUrl;
+        }
 
-      const location = {
-        address: locationAddress,
-      };
+        const latitude = locationInput.latitude ?? locationInput.lat;
+        const longitude = locationInput.longitude ?? locationInput.lng;
+        const parsedLatitude = latitude !== undefined ? Number(latitude) : undefined;
+        const parsedLongitude = longitude !== undefined ? Number(longitude) : undefined;
+        if (parsedLatitude !== undefined && !Number.isNaN(parsedLatitude)) {
+          location.latitude = parsedLatitude;
+        }
+        if (parsedLongitude !== undefined && !Number.isNaN(parsedLongitude)) {
+          location.longitude = parsedLongitude;
+        }
 
-      const mapUrl = toTrimmedString(locationInput.mapUrl ?? locationInput.mapURL ?? locationInput.map_url);
-      if (mapUrl) {
-        location.mapUrl = mapUrl;
+        detail.location = location;
+      } else {
+        detail.location = undefined;
       }
-
-      const latitude = locationInput.latitude ?? locationInput.lat;
-      const longitude = locationInput.longitude ?? locationInput.lng;
-      const parsedLatitude = latitude !== undefined ? Number(latitude) : undefined;
-      const parsedLongitude = longitude !== undefined ? Number(longitude) : undefined;
-      if (parsedLatitude !== undefined && !Number.isNaN(parsedLatitude)) {
-        location.latitude = parsedLatitude;
-      }
-      if (parsedLongitude !== undefined && !Number.isNaN(parsedLongitude)) {
-        location.longitude = parsedLongitude;
-      }
-
-      detail.location = location;
     }
 
     if (req.body?.about !== undefined) {
       const aboutInput = req.body.about;
-      if (!aboutInput || typeof aboutInput !== "object") {
-        return res.status(400).json({
-          success: false,
-          message: "About information is required",
-        });
+      if (aboutInput && typeof aboutInput === "object") {
+        detail.about = {
+          description: toTrimmedString(
+            aboutInput.description ?? aboutInput.details ?? aboutInput.text
+          ),
+          services: parseServices(aboutInput.services ?? []),
+        };
+      } else {
+        detail.about = undefined;
       }
-
-      const aboutDescription = toTrimmedString(aboutInput.description ?? aboutInput.details ?? aboutInput.text);
-      if (!aboutDescription) {
-        return res.status(400).json({
-          success: false,
-          message: "About description is required",
-        });
-      }
-
-      const services = parseServices(aboutInput.services ?? []);
-      if (!services.length) {
-        return res.status(400).json({
-          success: false,
-          message: "At least one service is required",
-        });
-      }
-
-      detail.about = {
-        description: aboutDescription,
-        services,
-      };
     }
 
     if (req.body?.offDaySchedules !== undefined) {
       const schedules = parseSchedules(req.body.offDaySchedules);
-      if (!schedules.length) {
-        return res.status(400).json({
-          success: false,
-          message: "At least one off-day schedule entry is required",
-        });
-      }
-
       detail.offDaySchedules = schedules;
     }
 

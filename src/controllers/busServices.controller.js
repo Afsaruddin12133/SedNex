@@ -67,20 +67,6 @@ const createBusService = async (req, res) => {
     const aboutBusServices = normalizeString(req.body?.aboutBusServices);
     const contactNumber = normalizeString(req.body?.contactNumber);
 
-    if (!busName) {
-      return res.status(400).json({
-        success: false,
-        message: "Bus name is required",
-      });
-    }
-
-    if (!busImage) {
-      return res.status(400).json({
-        success: false,
-        message: "Bus image is required",
-      });
-    }
-
     if (busSitNo === undefined || Number.isNaN(busSitNo) || busSitNo < 1) {
       return res.status(400).json({
         success: false,
@@ -88,33 +74,6 @@ const createBusService = async (req, res) => {
       });
     }
 
-    if (!rentalDetails || rentalDetails.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Rental details must have at least one item",
-      });
-    }
-
-    if (!note) {
-      return res.status(400).json({
-        success: false,
-        message: "Note is required",
-      });
-    }
-
-    if (!aboutBusServices) {
-      return res.status(400).json({
-        success: false,
-        message: "About bus services is required",
-      });
-    }
-
-    if (!contactNumber) {
-      return res.status(400).json({
-        success: false,
-        message: "Contact number is required",
-      });
-    }
 
     const busService = await BusService.create({
       busName,
@@ -173,22 +132,10 @@ const updateBusService = async (req, res) => {
     const updateDoc = {};
 
     if (busName !== undefined) {
-      if (!busName) {
-        return res.status(400).json({
-          success: false,
-          message: "Bus name cannot be empty",
-        });
-      }
       updateDoc.busName = busName;
     }
 
     if (busImage !== undefined) {
-      if (!busImage) {
-        return res.status(400).json({
-          success: false,
-          message: "Bus image cannot be empty",
-        });
-      }
       updateDoc.busImage = busImage;
     }
 
@@ -203,50 +150,19 @@ const updateBusService = async (req, res) => {
     }
 
     if (rentalDetails !== undefined) {
-      if (!rentalDetails || rentalDetails.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Rental details must have at least one item",
-        });
-      }
       updateDoc.rentalDetails = rentalDetails;
     }
 
     if (note !== undefined) {
-      if (!note) {
-        return res.status(400).json({
-          success: false,
-          message: "Note cannot be empty",
-        });
-      }
       updateDoc.note = note;
     }
 
     if (aboutBusServices !== undefined) {
-      if (!aboutBusServices) {
-        return res.status(400).json({
-          success: false,
-          message: "About bus services cannot be empty",
-        });
-      }
       updateDoc.aboutBusServices = aboutBusServices;
     }
 
     if (contactNumber !== undefined) {
-      if (!contactNumber) {
-        return res.status(400).json({
-          success: false,
-          message: "Contact number cannot be empty",
-        });
-      }
       updateDoc.contactNumber = contactNumber;
-    }
-
-    if (Object.keys(updateDoc).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
     }
 
     const busService = await BusService.findByIdAndUpdate(

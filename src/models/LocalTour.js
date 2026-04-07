@@ -4,34 +4,28 @@ const localTourSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 200,
     },
     image: {
       type: String,
-      required: true,
       trim: true,
     },
     info: {
       date: {
         type: String,
-        required: true,
         trim: true,
       },
       distance: {
         type: String,
-        required: true,
         trim: true,
       },
       duration: {
         type: String,
-        required: true,
         trim: true,
       },
       ticketPrice: {
         type: Number,
-        required: true,
         min: 0,
       },
       ticketPriceTag: {
@@ -40,12 +34,10 @@ const localTourSchema = new mongoose.Schema(
       },
       begins: {
         type: String,
-        required: true,
         trim: true,
       },
       returnTime: {
         type: String,
-        required: true,
         trim: true,
       },
     },
@@ -55,7 +47,6 @@ const localTourSchema = new mongoose.Schema(
     },
     locationDetails: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 4000,
     },
@@ -65,7 +56,6 @@ const localTourSchema = new mongoose.Schema(
     },
     tourStatus: {
       type: String,
-      required: true,
       trim: true,
       lowercase: true,
       enum: ["running", "completed", "upcoming"],

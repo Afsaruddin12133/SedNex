@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const mongoose = require("mongoose");
 
 const postSchema = new mongoose.Schema(
@@ -5,12 +6,10 @@ const postSchema = new mongoose.Schema(
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
 
     description: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 2000,
     },

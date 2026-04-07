@@ -5,11 +5,9 @@ const articleSchema = new mongoose.Schema(
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "articaleCategory",
-      required: true,
     },
     title: {
       type: String,
-      required: true,
       trim: true,
     },
     description: {
@@ -21,7 +19,6 @@ const articleSchema = new mongoose.Schema(
         type: {
           type: String,
           enum: ["paragraph", "image"],
-          required: true,
         },
         data: {
           type: String,
@@ -36,7 +33,6 @@ const articleSchema = new mongoose.Schema(
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
   },
   {

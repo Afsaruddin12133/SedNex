@@ -19,13 +19,6 @@ const createCategory = async (req, res) => {
     const description = toTrimmedString(req.body?.description);
     const statusInput = toTrimmedString(req.body?.status);
 
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "Category name is required",
-      });
-    }
-
     let status;
     if (statusInput) {
       const normalizedStatus = statusInput.toLowerCase();
@@ -38,9 +31,11 @@ const createCategory = async (req, res) => {
       status = normalizedStatus;
     }
 
-    const existing = await LearnArabicCategory.findOne({
-      $or: [{ name: new RegExp(`^${name}$`, "i") }, { slug: slugify(name) }],
-    });
+    const existing = name
+      ? await LearnArabicCategory.findOne({
+          $or: [{ name: new RegExp(`^${name}$`, "i") }, { slug: slugify(name) }],
+        })
+      : null;
 
     if (existing) {
       return res.status(409).json({
@@ -107,20 +102,6 @@ const createWord = async (req, res) => {
 
     const english = toTrimmedString(req.body?.english) || toTrimmedString(req.body?.phrase);
     const arabic = toTrimmedString(req.body?.arabic) || toTrimmedString(req.body?.translation);
-
-    if (!english) {
-      return res.status(400).json({
-        success: false,
-        message: "English term is required",
-      });
-    }
-
-    if (!arabic) {
-      return res.status(400).json({
-        success: false,
-        message: "Arabic term is required",
-      });
-    }
 
     let status;
     const statusInput = toTrimmedString(req.body?.status);
@@ -264,13 +245,6 @@ const updateWord = async (req, res) => {
     const example = toTrimmedString(req.body?.example);
     const statusInput = toTrimmedString(req.body?.status);
 
-    if (!english && !arabic && pronunciation === undefined && transliteration === undefined && example === undefined && !statusInput) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
-
     if (english) {
       word.english = english;
     }
@@ -391,13 +365,6 @@ const updateCategory = async (req, res) => {
     const name = toTrimmedString(req.body?.name);
     const description = toTrimmedString(req.body?.description);
     const statusInput = toTrimmedString(req.body?.status);
-
-    if (!name && description === undefined && !statusInput) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
 
     if (!mongoose.Types.ObjectId.isValid(categoriesid)) {
       return res.status(400).json({

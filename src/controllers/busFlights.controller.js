@@ -13,20 +13,6 @@ const createFlightdetails = async (req, res) => {
     const airlineName = normalizeString(req.body?.airlineName);
     const airlineImage = req.file?.path || req.file?.secure_url;
 
-    if (!airlineName) {
-      return res.status(400).json({
-        success: false,
-        message: "Airline name is required",
-      });
-    }
-
-    if (!airlineImage) {
-      return res.status(400).json({
-        success: false,
-        message: "Airline image is required",
-      });
-    }
-
     const flightDetails = await BusFlight.create({
       airlineName,
       airlineImage,
@@ -74,30 +60,11 @@ const updateFlightdetails = async (req, res) => {
     const updateDoc = {};
 
     if (airlineName !== undefined) {
-      if (!airlineName) {
-        return res.status(400).json({
-          success: false,
-          message: "Airline name cannot be empty",
-        });
-      }
       updateDoc.airlineName = airlineName;
     }
 
     if (airlineImage !== undefined) {
-      if (!airlineImage) {
-        return res.status(400).json({
-          success: false,
-          message: "Airline image cannot be empty",
-        });
-      }
       updateDoc.airlineImage = airlineImage;
-    }
-
-    if (Object.keys(updateDoc).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
     }
 
     const flightDetails = await BusFlight.findByIdAndUpdate(

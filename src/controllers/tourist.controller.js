@@ -5,20 +5,6 @@ const createTouristSpot = async (req, res) => {
   try {
     const { title, description } = req.body;
 
-    if (!title || title.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Title is required",
-      });
-    }
-
-    if (!description || description.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Description is required",
-      });
-    }
-
     const { userId } = req.authUser;
     const user = await User.findById(userId);
 
@@ -29,17 +15,10 @@ const createTouristSpot = async (req, res) => {
       });
     }
 
-    if (!req.file || !req.file.path) {
-      return res.status(400).json({
-        success: false,
-        message: "Tourist image is required",
-      });
-    }
-
     const spot = await TouristSpot.create({
       title,
       description,
-      image: req.file.path,
+      image: req.file?.path,
       author: user._id,
     });
 
@@ -112,17 +91,6 @@ const updateTouristSpot = async (req, res) => {
     const { touristId } = req.params;
     const { title, description } = req.body;
 
-    if (
-      title === undefined &&
-      description === undefined &&
-      !req.file
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
-
     const { userId } = req.authUser;
     const user = await User.findById(userId);
 
@@ -160,22 +128,10 @@ const updateTouristSpot = async (req, res) => {
     }
 
     if (title !== undefined) {
-      if (!title || title.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Title cannot be empty",
-        });
-      }
       spot.title = title;
     }
 
     if (description !== undefined) {
-      if (!description || description.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Description cannot be empty",
-        });
-      }
       spot.description = description;
     }
 

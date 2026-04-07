@@ -7,17 +7,14 @@ const learnArabicWordSchema = new mongoose.Schema(
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "LearnArabicCategory",
-      required: true,
       index: true,
     },
     english: {
       type: String,
-      required: true,
       trim: true,
     },
     arabic: {
       type: String,
-      required: true,
       trim: true,
     },
     pronunciation: {

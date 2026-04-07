@@ -23,20 +23,6 @@ const createTerms = async (req, res) => {
     for (let i = 0; i < normalizedTerms.length; i += 1) {
       const item = normalizedTerms[i];
 
-      if (!item.title) {
-        return res.status(400).json({
-          success: false,
-          message: `Title is required for item ${i + 1}`,
-        });
-      }
-
-      if (!item.content) {
-        return res.status(400).json({
-          success: false,
-          message: `Content is required for item ${i + 1}`,
-        });
-      }
-
       if (!item.version) {
         return res.status(400).json({
           success: false,
@@ -96,20 +82,6 @@ const updateTerms = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: `Version is required for item ${i + 1}`,
-        });
-      }
-
-      if (item.title !== undefined && !item.title) {
-        return res.status(400).json({
-          success: false,
-          message: `Title cannot be empty for item ${i + 1}`,
-        });
-      }
-
-      if (item.content !== undefined && !item.content) {
-        return res.status(400).json({
-          success: false,
-          message: `Content cannot be empty for item ${i + 1}`,
         });
       }
 
@@ -261,27 +233,6 @@ const createContact = async (req, res) => {
   try {
     const { email, mobile, website, whatsappNumber } = req.body;
 
-    if (!email || email.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required",
-      });
-    }
-
-    if (!mobile || mobile.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Mobile is required",
-      });
-    }
-
-    if (!website || website.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Website is required",
-      });
-    }
-
     const existing = await Contact.findOne();
     if (existing) {
       return res.status(409).json({
@@ -291,10 +242,10 @@ const createContact = async (req, res) => {
     }
 
     const contact = await Contact.create({
-      email: email.trim(),
-      mobile: mobile.trim(),
-      website: website.trim(),
-      whatsappNumber: whatsappNumber ? String(whatsappNumber).trim() : undefined,
+      email: email !== undefined ? String(email).trim() : undefined,
+      mobile: mobile !== undefined ? String(mobile).trim() : undefined,
+      website: website !== undefined ? String(website).trim() : undefined,
+      whatsappNumber: whatsappNumber !== undefined ? String(whatsappNumber).trim() : undefined,
     });
 
     return res.status(201).json({
@@ -321,18 +272,6 @@ const updateContact = async (req, res) => {
   try {
     const { email, mobile, website, whatsappNumber } = req.body;
 
-    if (
-      (email === undefined || email === null) &&
-      (mobile === undefined || mobile === null) &&
-      (website === undefined || website === null) &&
-      (whatsappNumber === undefined || whatsappNumber === null)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
-
     const contact = await Contact.findOne();
 
     if (!contact) {
@@ -343,42 +282,18 @@ const updateContact = async (req, res) => {
     }
 
     if (email !== undefined) {
-      if (!email || email.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Email cannot be empty",
-        });
-      }
-      contact.email = email.trim();
+      contact.email = String(email).trim();
     }
 
     if (mobile !== undefined) {
-      if (!mobile || mobile.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Mobile cannot be empty",
-        });
-      }
-      contact.mobile = mobile.trim();
+      contact.mobile = String(mobile).trim();
     }
 
     if (website !== undefined) {
-      if (!website || website.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Website cannot be empty",
-        });
-      }
-      contact.website = website.trim();
+      contact.website = String(website).trim();
     }
 
     if (whatsappNumber !== undefined) {
-      if (!whatsappNumber || String(whatsappNumber).trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "WhatsApp number cannot be empty",
-        });
-      }
       contact.whatsappNumber = String(whatsappNumber).trim();
     }
 
@@ -463,22 +378,16 @@ const deleteContact = async (req, res) => {
 const createFaq = async (req, res) => {
   try {
     const { question, answer } = req.body;
+    const normalizedQuestion =
+      question !== undefined && question !== null
+        ? String(question).trim()
+        : undefined;
+    const normalizedAnswer =
+      answer !== undefined && answer !== null ? String(answer).trim() : undefined;
 
-    if (!question || question.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Question is required",
-      });
-    }
-
-    if (!answer || answer.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Answer is required",
-      });
-    }
-
-    const existing = await Faq.findOne({ question: question.trim() });
+    const existing = normalizedQuestion
+      ? await Faq.findOne({ question: normalizedQuestion })
+      : null;
     if (existing) {
       return res.status(409).json({
         success: false,
@@ -487,8 +396,8 @@ const createFaq = async (req, res) => {
     }
 
     const faq = await Faq.create({
-      question: question.trim(),
-      answer: answer.trim(),
+      question: normalizedQuestion,
+      answer: normalizedAnswer,
     });
 
     return res.status(201).json({
@@ -515,16 +424,6 @@ const updateFaq = async (req, res) => {
     const { faqId } = req.params;
     const { question, answer } = req.body;
 
-    if (
-      (question === undefined || question === null) &&
-      (answer === undefined || answer === null)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
-
     const faq = await Faq.findById(faqId);
 
     if (!faq) {
@@ -535,15 +434,9 @@ const updateFaq = async (req, res) => {
     }
 
     if (question !== undefined) {
-      if (!question || question.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Question cannot be empty",
-        });
-      }
-
+      const normalizedQuestion = String(question).trim();
       const duplicate = await Faq.findOne({
-        question: question.trim(),
+        question: normalizedQuestion,
         _id: { $ne: faqId },
       });
 
@@ -554,17 +447,11 @@ const updateFaq = async (req, res) => {
         });
       }
 
-      faq.question = question.trim();
+      faq.question = normalizedQuestion;
     }
 
     if (answer !== undefined) {
-      if (!answer || answer.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Answer cannot be empty",
-        });
-      }
-      faq.answer = answer.trim();
+      faq.answer = String(answer).trim();
     }
 
     await faq.save();
@@ -660,34 +547,6 @@ const createTeamMember = async (req, res) => {
     const about = normalizeString(req.body?.about || req.body?.employeeAbout);
     const image = getTeamImage(req);
 
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "Employee name is required",
-      });
-    }
-
-    if (!image) {
-      return res.status(400).json({
-        success: false,
-        message: "Employee image is required",
-      });
-    }
-
-    if (!designation) {
-      return res.status(400).json({
-        success: false,
-        message: "Employee designation is required",
-      });
-    }
-
-    if (!about) {
-      return res.status(400).json({
-        success: false,
-        message: "Employee about is required",
-      });
-    }
-
     const member = await Team.create({
       name,
       image,
@@ -766,50 +625,19 @@ const updateTeamMember = async (req, res) => {
     const updateDoc = {};
 
     if (name !== undefined) {
-      if (!name) {
-        return res.status(400).json({
-          success: false,
-          message: "Employee name cannot be empty",
-        });
-      }
       updateDoc.name = name;
     }
 
     if (designation !== undefined) {
-      if (!designation) {
-        return res.status(400).json({
-          success: false,
-          message: "Employee designation cannot be empty",
-        });
-      }
       updateDoc.designation = designation;
     }
 
     if (about !== undefined) {
-      if (!about) {
-        return res.status(400).json({
-          success: false,
-          message: "Employee about cannot be empty",
-        });
-      }
       updateDoc.about = about;
     }
 
     if (image !== undefined) {
-      if (!image) {
-        return res.status(400).json({
-          success: false,
-          message: "Employee image cannot be empty",
-        });
-      }
       updateDoc.image = image;
-    }
-
-    if (Object.keys(updateDoc).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
     }
 
     const member = await Team.findByIdAndUpdate(

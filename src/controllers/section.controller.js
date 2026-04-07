@@ -38,12 +38,6 @@ const createSection = async (req, res) => {
     const rawStatus = req.body?.status;
 
     const name = rawName ? String(rawName).trim().toLowerCase() : "";
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "Section name is required",
-      });
-    }
 
     let status;
     if (rawStatus !== undefined) {
@@ -99,12 +93,6 @@ const updateSection = async (req, res) => {
       });
     }
 
-    if (name === undefined && status === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
 
     const section = await Section.findById(sectionId);
     if (!section) {
@@ -116,12 +104,6 @@ const updateSection = async (req, res) => {
 
     if (name !== undefined) {
       const normalizedName = String(name).trim().toLowerCase();
-      if (!normalizedName) {
-        return res.status(400).json({
-          success: false,
-          message: "Section name is required",
-        });
-      }
 
       const existing = await Section.findOne({
         _id: { $ne: section._id },
@@ -293,22 +275,10 @@ const createSectionItem = async (req, res) => {
     }
 
     const name = rawName ? String(rawName).trim() : "";
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "Item name is required",
-      });
-    }
 
     const uploadedImage = req.file?.path || req.file?.secure_url;
     const bodyImage = toTrimmedString(req.body?.image);
     const image = uploadedImage || bodyImage;
-    if (!image) {
-      return res.status(400).json({
-        success: false,
-        message: "Item image is required",
-      });
-    }
 
     let status;
     if (rawStatus !== undefined) {
@@ -389,21 +359,9 @@ const updateSectionItem = async (req, res) => {
     const { name, status } = req.body;
     const hasImageUpdate = Boolean(req.file) || req.body?.image !== undefined;
 
-    if (name === undefined && status === undefined && !hasImageUpdate) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
 
     if (name !== undefined) {
       const normalizedName = String(name).trim();
-      if (!normalizedName) {
-        return res.status(400).json({
-          success: false,
-          message: "Item name is required",
-        });
-      }
 
       const existing = await SectionItem.findOne({
         _id: { $ne: item._id },
@@ -425,14 +383,6 @@ const updateSectionItem = async (req, res) => {
       const uploadedImage = req.file?.path || req.file?.secure_url;
       const bodyImage = toTrimmedString(req.body?.image);
       const image = uploadedImage || bodyImage;
-
-      if (!image) {
-        return res.status(400).json({
-          success: false,
-          message: "Item image is required",
-        });
-      }
-
       item.image = image;
     }
 

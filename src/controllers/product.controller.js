@@ -287,15 +287,9 @@ const recalculateRatings = (product) => {
 const createProduct = async (req, res) => {
   try {
     const name = trimToUndefined(req.body.name);
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: "Product name is required",
-      });
-    }
 
     const price = ensureNumber(req.body.price);
-    if (price === undefined || price < 0) {
+    if (price !== undefined && price < 0) {
       return res.status(400).json({
         success: false,
         message: "Valid product price is required",
@@ -310,7 +304,7 @@ const createProduct = async (req, res) => {
           message: "Discount price must be positive",
         });
       }
-      if (discountPrice > price) {
+      if (price !== undefined && discountPrice > price) {
         return res.status(400).json({
           success: false,
           message: "Discount price cannot exceed price",
@@ -341,12 +335,6 @@ const createProduct = async (req, res) => {
     const uploadedImages = collectUploadedImages(req.files);
     const bodyImages = collectBodyImages(req.body);
     const images = Array.from(new Set([...bodyImages, ...uploadedImages]));
-    if (!images.length) {
-      return res.status(400).json({
-        success: false,
-        message: "At least one product image is required",
-      });
-    }
 
     const specifications = normalizeSpecifications(req.body.specifications, req.body);
     const colorVariants = normalizeColorVariants(req.body.colorVariants, req.body);
@@ -608,13 +596,6 @@ const updateProductsWhatsAppNumber = async (req, res) => {
       req.body.whatsappNumber ?? req.body.whatsappUrl
     );
 
-    if (!whatsappNumber) {
-      return res.status(400).json({
-        success: false,
-        message: "Valid whatsappNumber is required",
-      });
-    }
-
     const contact = await Contact.findOne();
     if (!contact) {
       return res.status(404).json({
@@ -661,13 +642,10 @@ const updateProduct = async (req, res) => {
     }
 
     if (req.body.name !== undefined) {
-      const updatedName = trimToUndefined(req.body.name);
-      if (!updatedName) {
-        return res.status(400).json({
-          success: false,
-          message: "Product name cannot be empty",
-        });
-      }
+      const updatedName =
+        req.body.name !== null && req.body.name !== undefined
+          ? String(req.body.name).trim()
+          : req.body.name;
       product.name = updatedName;
     }
 
@@ -735,12 +713,6 @@ const updateProduct = async (req, res) => {
 
     if (imagesProvided) {
       const combined = Array.from(new Set([...collectBodyImages(req.body), ...uploadedImages]));
-      if (!combined.length) {
-        return res.status(400).json({
-          success: false,
-          message: "Product must retain at least one image",
-        });
-      }
       product.images = combined;
     }
 

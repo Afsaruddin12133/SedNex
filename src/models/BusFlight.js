@@ -4,13 +4,11 @@ const busFlightSchema = new mongoose.Schema(
   {
     airlineName: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 200,
     },
     airlineImage: {
       type: String,
-      required: true,
       trim: true,
     },
   },

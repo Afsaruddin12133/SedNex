@@ -132,21 +132,8 @@ const normalizeArticleContent = (content) => {
 // ========================
 const createArticle = async (req, res) => {
   try {
-    const { category, title, description, content } = req.body;
-
-    if (!category || category.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Article category is required",
-      });
-    }
-
-    if (!title || title.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Article title is required",
-      });
-    }
+    const body = req.body || {};
+    const { category, title, description, content } = body;
 
     const parsedContent = parseArticleContentInput(content);
     if (parsedContent.error) {
@@ -168,36 +155,60 @@ const createArticle = async (req, res) => {
         ];
       }
     }
+    const uploadedImageUrls = getUploadedImageUrls(req);
+
+    if (normalizedContent === undefined && uploadedImageUrls.length) {
+      normalizedContent = uploadedImageUrls.map((url) => ({
+        type: "image",
+        url,
+      }));
+    }
 
     if (normalizedContent === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "Article content is required",
-      });
+      normalizedContent = [];
     }
 
-    const uploadedImageUrls = getUploadedImageUrls(req);
-    const mergedContent = applyUploadedImagesToContent(
-      normalizedContent,
-      uploadedImageUrls
-    );
-    if (mergedContent.error) {
-      return res.status(400).json({
-        success: false,
-        message: mergedContent.error,
-      });
+    let contentToSave = [];
+    if (normalizedContent.length) {
+      const hasImageBlocks = normalizedContent.some(
+        (block) => block && block.type === "image"
+      );
+      let mergedContent = normalizedContent;
+
+      if (uploadedImageUrls.length) {
+        if (hasImageBlocks) {
+          const merged = applyUploadedImagesToContent(
+            normalizedContent,
+            uploadedImageUrls
+          );
+          if (merged.error) {
+            return res.status(400).json({
+              success: false,
+              message: merged.error,
+            });
+          }
+          mergedContent = merged.content;
+        } else {
+          mergedContent = normalizedContent.concat(
+            uploadedImageUrls.map((url) => ({ type: "image", url }))
+          );
+        }
+      }
+
+      const contentResult = normalizeArticleContent(mergedContent);
+      if (contentResult.error) {
+        return res.status(400).json({
+          success: false,
+          message: contentResult.error,
+        });
+      }
+
+      contentToSave = contentResult.normalized;
     }
 
-    const contentResult = normalizeArticleContent(mergedContent.content);
-    if (contentResult.error) {
-      return res.status(400).json({
-        success: false,
-        message: contentResult.error,
-      });
-    }
-
-    const categoryName = category.trim();
-    const categorySlug = slugify(categoryName);
+    const categoryName =
+      category !== undefined && category !== null ? String(category).trim() : "";
+    const categorySlug = categoryName ? slugify(categoryName) : "";
 
     const { userId } = req.authUser;
 
@@ -212,28 +223,30 @@ const createArticle = async (req, res) => {
 
     let existingCategory = null;
 
-    if (mongoose.Types.ObjectId.isValid(categoryName)) {
-      existingCategory = await ArticaleCategory.findById(categoryName);
-    }
+    if (categoryName) {
+      if (mongoose.Types.ObjectId.isValid(categoryName)) {
+        existingCategory = await ArticaleCategory.findById(categoryName);
+      }
 
-    if (!existingCategory) {
-      existingCategory = await ArticaleCategory.findOne({
-        $or: [{ name: categoryName }, { slug: categorySlug }],
-      });
-    }
+      if (!existingCategory) {
+        existingCategory = await ArticaleCategory.findOne({
+          $or: [{ name: categoryName }, { slug: categorySlug }],
+        });
+      }
 
-    if (!existingCategory) {
-      existingCategory = await ArticaleCategory.create({
-        name: categoryName,
-        isActive: true,
-      });
+      if (!existingCategory) {
+        existingCategory = await ArticaleCategory.create({
+          name: categoryName,
+          isActive: true,
+        });
+      }
     }
 
     const article = await Article.create({
-      category: existingCategory._id,
+      category: existingCategory ? existingCategory._id : undefined,
       title,
       description: typeof description === "string" ? description.trim() : undefined,
-      content: contentResult.normalized,
+      content: contentToSave,
       author: user._id,
     });
 
@@ -268,14 +281,17 @@ const createCategoryArticle = async (req, res) => {
     const { name, category, isActive } = req.body;
     const categoryName = name || category;
 
-    if (!categoryName || categoryName.trim() === "") {
+    if(categoryName === undefined) {
       return res.status(400).json({
         success: false,
         message: "Category name is required",
       });
     }
 
-    const normalizedName = categoryName.trim();
+    const normalizedName =
+      categoryName !== undefined && categoryName !== null
+        ? String(categoryName).trim()
+        : "";
     const categorySlug = slugify(normalizedName);
 
     const exists = await ArticaleCategory.findOne({
@@ -381,12 +397,6 @@ const updateCategoryArticle = async (req, res) => {
     const { category } = req.params;
     const { name, isActive } = req.body;
 
-    if (name === undefined && isActive === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
 
     let existingCategory = null;
     if (mongoose.Types.ObjectId.isValid(category)) {
@@ -409,14 +419,7 @@ const updateCategoryArticle = async (req, res) => {
     }
 
     if (name !== undefined) {
-      if (!name || name.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Category name is required",
-        });
-      }
-
-      const normalizedName = name.trim();
+      const normalizedName = String(name).trim();
       const nameSlug = slugify(normalizedName);
 
       const duplicate = await ArticaleCategory.findOne({
@@ -507,17 +510,6 @@ const updateArticle = async (req, res) => {
     const { articleId } = req.params;
     const { category, title, description, content } = req.body;
 
-    if (
-      category === undefined &&
-      title === undefined &&
-      description === undefined &&
-      content === undefined
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide at least one field to update",
-      });
-    }
 
     const { userId } = req.authUser;
 
@@ -546,55 +538,45 @@ const updateArticle = async (req, res) => {
     }
 
     if (category !== undefined) {
-      if (!category || category.toString().trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Article category cannot be empty",
-        });
+      const categoryValue =
+        category !== null && category !== undefined
+          ? category.toString().trim()
+          : "";
+
+      if (!categoryValue) {
+        article.category = undefined;
+      } else {
+        let targetCategory = null;
+
+        if (mongoose.Types.ObjectId.isValid(categoryValue)) {
+          targetCategory = await ArticaleCategory.findById(categoryValue);
+        }
+
+        if (!targetCategory) {
+          const categorySlug = slugify(categoryValue);
+          targetCategory = await ArticaleCategory.findOne({
+            $or: [{ name: categoryValue }, { slug: categorySlug }],
+          });
+        }
+
+        if (!targetCategory) {
+          return res.status(404).json({
+            success: false,
+            message: "Category not found",
+          });
+        }
+
+        article.category = targetCategory._id;
       }
-
-      let targetCategory = null;
-      const categoryValue = category.toString().trim();
-
-      if (mongoose.Types.ObjectId.isValid(categoryValue)) {
-        targetCategory = await ArticaleCategory.findById(categoryValue);
-      }
-
-      if (!targetCategory) {
-        const categorySlug = slugify(categoryValue);
-        targetCategory = await ArticaleCategory.findOne({
-          $or: [{ name: categoryValue }, { slug: categorySlug }],
-        });
-      }
-
-      if (!targetCategory) {
-        return res.status(404).json({
-          success: false,
-          message: "Category not found",
-        });
-      }
-
-      article.category = targetCategory._id;
     }
 
     if (title !== undefined) {
-      if (!title || title.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Article title cannot be empty",
-        });
-      }
-      article.title = title;
+      article.title = typeof title === "string" ? title.trim() : title;
     }
 
     if (description !== undefined) {
-      if (!description || description.trim() === "") {
-        return res.status(400).json({
-          success: false,
-          message: "Article description cannot be empty",
-        });
-      }
-      article.description = description.trim();
+      article.description =
+        typeof description === "string" ? description.trim() : description;
     }
 
     if (content !== undefined) {
@@ -606,34 +588,44 @@ const updateArticle = async (req, res) => {
         });
       }
 
+      let normalizedContent = parsedContent.value ?? [];
       const uploadedImageUrls = getUploadedImageUrls(req);
-      const mergedContent = applyUploadedImagesToContent(
-        parsedContent.value,
-        uploadedImageUrls
+      const hasImageBlocks = normalizedContent.some(
+        (block) => block && block.type === "image"
       );
-      if (mergedContent.error) {
-        return res.status(400).json({
-          success: false,
-          message: mergedContent.error,
-        });
-      }
+      let mergedContent = normalizedContent;
 
-      const contentResult = normalizeArticleContent(mergedContent.content);
-      if (contentResult.error) {
-        return res.status(400).json({
-          success: false,
-          message: contentResult.error,
-        });
-      }
-
-      article.content = contentResult.normalized;
-    } else {
-      const uploadedImageUrls = getUploadedImageUrls(req);
       if (uploadedImageUrls.length) {
-        return res.status(400).json({
-          success: false,
-          message: "Content is required when uploading images",
-        });
+        if (hasImageBlocks) {
+          const merged = applyUploadedImagesToContent(
+            normalizedContent,
+            uploadedImageUrls
+          );
+          if (merged.error) {
+            return res.status(400).json({
+              success: false,
+              message: merged.error,
+            });
+          }
+          mergedContent = merged.content;
+        } else {
+          mergedContent = normalizedContent.concat(
+            uploadedImageUrls.map((url) => ({ type: "image", url }))
+          );
+        }
+      }
+
+      if (mergedContent.length) {
+        const contentResult = normalizeArticleContent(mergedContent);
+        if (contentResult.error) {
+          return res.status(400).json({
+            success: false,
+            message: contentResult.error,
+          });
+        }
+        article.content = contentResult.normalized;
+      } else {
+        article.content = [];
       }
     }
 

@@ -4,17 +4,17 @@ const STATUS_VALUES = ["active", "inactive"];
 
 const contactSchema = new mongoose.Schema(
   {
-    mobile: { type: String, required: true, trim: true },
-    direction: { type: String, required: true, trim: true },
-    website: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true },
+    mobile: { type: String, trim: true },
+    direction: { type: String, trim: true },
+    website: { type: String, trim: true },
+    email: { type: String, trim: true },
   },
   { _id: false }
 );
 
 const locationSchema = new mongoose.Schema(
   {
-    address: { type: String, required: true, trim: true },
+    address: { type: String, trim: true },
     mapUrl: { type: String, trim: true },
     latitude: { type: Number },
     longitude: { type: Number },
@@ -24,7 +24,7 @@ const locationSchema = new mongoose.Schema(
 
 const aboutSchema = new mongoose.Schema(
   {
-    description: { type: String, required: true, trim: true },
+    description: { type: String, trim: true },
     services: {
       type: [String],
       default: [],
@@ -39,7 +39,7 @@ const aboutSchema = new mongoose.Schema(
 
 const scheduleSchema = new mongoose.Schema(
   {
-    day: { type: String, required: true, trim: true },
+    day: { type: String, trim: true },
     note: { type: String, trim: true },
   },
   { _id: false }
@@ -50,13 +50,11 @@ const sectionItemDetailSchema = new mongoose.Schema(
     sectionId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Section",
-      required: true,
       index: true,
     },
     sectionItemId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SectionItem",
-      required: true,
       index: true,
     },
     status: {
@@ -66,15 +64,12 @@ const sectionItemDetailSchema = new mongoose.Schema(
     },
     contact: {
       type: contactSchema,
-      required: true,
     },
     location: {
       type: locationSchema,
-      required: true,
     },
     about: {
       type: aboutSchema,
-      required: true,
     },
     offDaySchedules: {
       type: [scheduleSchema],

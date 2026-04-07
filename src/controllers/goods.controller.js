@@ -8,21 +8,14 @@ const createBasicGoods = async (req, res) => {
     const { name, price, category,pricetag } = req.body;
     const icon = req.file ? req.file.path : req.body.icon;
 
-    if (!name || price === undefined || price === null || !icon || !category || !pricetag) {
-      return res.status(400).json({
-        message: "Name, price, icon, category, and pricetag are required",
-      });
-    }
-
     const numericPrice = Number(price);
-
-    if (Number.isNaN(numericPrice) || numericPrice < 0) {
+    if (price !== undefined && (Number.isNaN(numericPrice) || numericPrice < 0)) {
       return res.status(400).json({
         message: "Price must be a non-negative number",
       });
     }
 
-    if (typeof category !== "string" || !category.trim()) {
+    if (category !== undefined && (typeof category !== "string" || !category.trim())) {
       return res.status(400).json({
         message: "Category must be a non-empty string",
       });
@@ -110,11 +103,6 @@ const updateGoods = async (req, res) => {
     const updates = {};
 
     if (name !== undefined) {
-      if (typeof name !== "string" || !name.trim()) {
-        return res.status(400).json({
-          message: "Name must be a non-empty string",
-        });
-      }
       updates.name = name.trim();
     }
 
@@ -129,36 +117,15 @@ const updateGoods = async (req, res) => {
     }
 
     if (category !== undefined) {
-      if (typeof category !== "string" || !category.trim()) {
-        return res.status(400).json({
-          message: "Category must be a non-empty string",
-        });
-      }
       updates.category = category.trim();
     }
 
     if (icon !== undefined) {
-      if (typeof icon !== "string" || !icon.trim()) {
-        return res.status(400).json({
-          message: "Icon must be a non-empty string",
-        });
-      }
       updates.icon = icon.trim();
     }
 
     if (pricetag !== undefined) {
-      if (typeof pricetag !== "string" || !pricetag.trim()) {
-        return res.status(400).json({
-          message: "Pricetag must be a non-empty string",
-        });
-      }
       updates.pricetag = pricetag.trim();
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({
-        message: "Provide at least one field to update",
-      });
     }
 
     const goods = await Goods.findByIdAndUpdate(
