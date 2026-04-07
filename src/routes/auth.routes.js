@@ -1,10 +1,12 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
+const adminMiddleware = require("../middlewares/admin.middleware");
 const {
 	login,
 	register,
 	resetPassword,
 	changePassword,
+	adminChangeUserPassword,
 	forgotPassword,
 	verifyResetOtp,
 	googleLogin,
@@ -21,6 +23,12 @@ router.post("/forgot-password", forgotPassword);
 router.post("/otp-verification", verifyResetOtp);
 router.post("/reset-password", resetPassword);
 router.post("/change-password", authMiddleware, changePassword);
+router.post(
+	"/admin/change-password/:userId",
+	authMiddleware,
+	adminMiddleware,
+	adminChangeUserPassword
+);
 
 
 

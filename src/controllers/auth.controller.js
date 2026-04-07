@@ -172,6 +172,46 @@ const changePassword = async (req, res) => {
   }
 };
 
+const adminChangeUserPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newPassword, confirmPassword } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+
+    if (!newPassword) {
+      return res.status(400).json({ message: "newPassword is required" });
+    }
+
+    if (!confirmPassword) {
+      return res.status(400).json({ message: "confirmPassword is required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "New Passwords do not match" });
+    }
+
+    const user = await User.findById(userId).select("+password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to update password",
+      error: error.message,
+    });
+  }
+};
+
 const resetPassword = async (req, res) => {
   try {
     const { token, newPassword, confirmPassword } = req.body;
@@ -476,6 +516,7 @@ module.exports = {
   register,
   resetPassword,
   changePassword,
+  adminChangeUserPassword,
   forgotPassword,
   verifyResetOtp,
   googleLogin,

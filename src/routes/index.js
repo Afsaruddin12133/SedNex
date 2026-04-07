@@ -40,5 +40,5 @@ router.use("/bus-services", busServicesRoutes);
 router.use("/ramadan-times", ramadanTimeRoutes);
 router.use("/notifications", notificationRoutes);
 
-
 module.exports = router;
+
