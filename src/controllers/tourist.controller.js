@@ -3,7 +3,14 @@ const User = require("../models/User");
 
 const createTouristSpot = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description } = req.body || {};
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Add title at least to create tourist spot",
+      });
+    }
 
     const { userId } = req.authUser;
     const user = await User.findById(userId);
