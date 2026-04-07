@@ -2,7 +2,9 @@ const HomepageMarquee = require("../models/HomepageMarquee");
 const HomepageSlider = require("../models/HomepageSlider");
 const ServiceCard = require("../models/ServiceCard");
 const GoldRate = require("../models/GoldRate");
-const { safeCreateGlobalNotification } = require("../services/notification.service");
+const {
+  safeCreateGlobalNotification,
+} = require("../services/notification.service");
 
 const STATUS_VALUES = new Set(["active", "inactive"]);
 
@@ -82,7 +84,7 @@ const createMarquee = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Marquee created successfully"
+      message: "Marquee created successfully",
     });
   } catch (error) {
     console.error("Create Homepage Marquee Error:", error);
@@ -109,7 +111,6 @@ const getPublicMarquees = async (req, res) => {
     });
   }
 };
-
 
 const updateMarquee = async (req, res) => {
   try {
@@ -152,21 +153,25 @@ const updateMarquee = async (req, res) => {
   }
 };
 
-
 const createSlider = async (req, res) => {
   try {
     const imagePath = req.file?.path || req.file?.secure_url;
-    if (!imagePath) {
-      return res.status(400).json({
-        success: false,
-        message: "Slider image is required",
-      });
-    }
 
     const title = toTrimmedString(req.body?.title);
     const subtitle = toTrimmedString(req.body?.subtitle);
-    const buttonText = toTrimmedString(req.body?.buttonText ?? req.body?.button_text);
-    const buttonUrl = toTrimmedString(req.body?.buttonUrl ?? req.body?.button_url);
+    const buttonText = toTrimmedString(
+      req.body?.buttonText ?? req.body?.button_text,
+    );
+    const buttonUrl = toTrimmedString(
+      req.body?.buttonUrl ?? req.body?.button_url,
+    );
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Add title at least to create slider",
+      });
+    }
 
     let status;
     const statusInput = toTrimmedString(req.body?.status);
@@ -205,7 +210,7 @@ const createSlider = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Slider created successfully"
+      message: "Slider created successfully",
     });
   } catch (error) {
     console.error("Create Homepage Slider Error:", error);
@@ -218,8 +223,10 @@ const createSlider = async (req, res) => {
 
 const getPublicSliders = async (req, res) => {
   try {
-    const sliders = await HomepageSlider.find({ status: "active" })
-      .sort({ order: 1, createdAt: -1 });
+    const sliders = await HomepageSlider.find({ status: "active" }).sort({
+      order: 1,
+      createdAt: -1,
+    });
 
     return res.status(200).json({
       success: true,
@@ -248,8 +255,12 @@ const updateSlider = async (req, res) => {
 
     const title = toTrimmedString(req.body?.title);
     const subtitle = toTrimmedString(req.body?.subtitle);
-    const buttonText = toTrimmedString(req.body?.buttonText ?? req.body?.button_text);
-    const buttonUrl = toTrimmedString(req.body?.buttonUrl ?? req.body?.button_url);
+    const buttonText = toTrimmedString(
+      req.body?.buttonText ?? req.body?.button_text,
+    );
+    const buttonUrl = toTrimmedString(
+      req.body?.buttonUrl ?? req.body?.button_url,
+    );
     const statusInput = toTrimmedString(req.body?.status);
     const orderInput = req.body?.order;
     const imagePath = req.file?.path || req.file?.secure_url;
