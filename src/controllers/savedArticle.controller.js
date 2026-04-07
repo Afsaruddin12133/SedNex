@@ -61,6 +61,39 @@ const toggleSaveArticle = async (req, res) => {
   }
 };
 
+const getSavedArticles = async (req, res) => {
+  try {
+    const { userId } = req.authUser;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const savedArticles = await SavedArticle.find({ user: user._id })
+      .populate("article")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      total: savedArticles.length,
+      savedArticles,
+    });
+  } catch (error) {
+    console.error("Get Saved Articles Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch saved articles",
+    });
+  }
+};
+
 module.exports = {
   toggleSaveArticle,
+  getSavedArticles,
 };

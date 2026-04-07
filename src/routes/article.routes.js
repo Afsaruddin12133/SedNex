@@ -15,7 +15,10 @@ const {
     getArticleById,
     deleteArticle,
 } = require("../controllers/article.controller");
-const { toggleSaveArticle } = require("../controllers/savedArticle.controller");
+const {
+    toggleSaveArticle,
+    getSavedArticles,
+} = require("../controllers/savedArticle.controller");
 
 const router = express.Router();
 
@@ -55,6 +58,12 @@ router.get(
     "/",
     // authMiddleware,
     getArticles,
+);
+
+router.get(
+    "/saved",
+    authMiddleware,
+    getSavedArticles
 );
 
 router.get(

@@ -64,6 +64,37 @@ const toggleSavePost = async (req, res) => {
   }
 };
 
+const getSavedPosts = async (req, res) => {
+  try {
+    const userId = req.authUser.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const savedPosts = await SavedPost.find({ user: user._id })
+      .populate("post")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      total: savedPosts.length,
+      savedPosts,
+    });
+  } catch (error) {
+    console.error("Get Saved Posts Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch saved posts",
+    });
+  }
+};
+
 module.exports = {
   toggleSavePost,
+  getSavedPosts,
 };
