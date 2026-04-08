@@ -35,6 +35,10 @@ const ramadanTimeSchema = new mongoose.Schema(
       type: [ramadanRowSchema],
       default: [],
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

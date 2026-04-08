@@ -55,6 +55,35 @@ const getRamadanTable = async (req, res) => {
   }
 };
 
+const setRamadanTableStatus = async (req, res) => {
+  try {
+    const { isActive } = req.body;
+
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isActive must be a boolean",
+      });
+    }
+
+    const table = await getOrCreateTable();
+    table.isActive = isActive;
+    await table.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Ramadan table status updated successfully",
+      table,
+    });
+  } catch (error) {
+    console.error("Set Ramadan Table Status Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update Ramadan table status",
+    });
+  }
+};
+
 const updateRamadanTable = async (req, res) => {
   try {
     const { rows } = req.body;
@@ -187,4 +216,5 @@ const updateRamadanTable = async (req, res) => {
 module.exports = {
   getRamadanTable,
   updateRamadanTable,
+  setRamadanTableStatus,
 };
