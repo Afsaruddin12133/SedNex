@@ -43,6 +43,10 @@ const postSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

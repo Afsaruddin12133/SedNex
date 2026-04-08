@@ -371,6 +371,62 @@ const getMyPosts = async (req, res) => {
   }
 };
 
+// ========================
+// Update Post Completion State
+// ========================
+const updatePostCompletion = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { isCompleted } = req.body;
+
+    if (typeof isCompleted !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isCompleted must be a boolean",
+      });
+    }
+
+    const userId = req.authUser.userId;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post || !post.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    if (post.author.toString() !== user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only update your own post",
+      });
+    }
+
+    post.isCompleted = isCompleted;
+    await post.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Post completion status updated",
+      post,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update post completion status",
+    });
+  }
+};
+
 module.exports = {
   createPost,
   getPosts,
@@ -380,4 +436,5 @@ module.exports = {
   getPostsByCategory,
   updatePost,
   getMyPosts,
+  updatePostCompletion,
 };

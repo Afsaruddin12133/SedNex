@@ -1,7 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth.middleware");
 const { uploadPostImages } = require("../middlewares/postUploads");
-const { createPost, getPosts, toggleLove, getPostById, deletePost, getPostsByCategory, updatePost, getMyPosts } = require("../controllers/post.controller");
+const { createPost, getPosts, toggleLove, getPostById, deletePost, getPostsByCategory, updatePost, getMyPosts, updatePostCompletion } = require("../controllers/post.controller");
 const { createComment, getPostComments, getReplies } = require("../controllers/comment.controller");
 const { toggleSavePost, getSavedPosts } = require("../controllers/savedPost.controller");
 const adminMiddleware = require("../middlewares/admin.middleware");
@@ -53,6 +53,15 @@ router.patch(
     authMiddleware,
     uploadPostImages,
     updatePost
+);
+
+// ========================
+// Update Post Completion State
+// ========================
+router.patch(
+    "/:postId/completion",
+    authMiddleware,
+    updatePostCompletion
 );
 // ========================
 // Get Posts By category
