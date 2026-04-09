@@ -164,16 +164,6 @@ const createSectionItemDetail = async (req, res) => {
         location.mapUrl = mapUrl;
       }
 
-      const latitude = locationInput.latitude ?? locationInput.lat;
-      const longitude = locationInput.longitude ?? locationInput.lng;
-      const parsedLatitude = latitude !== undefined ? Number(latitude) : undefined;
-      const parsedLongitude = longitude !== undefined ? Number(longitude) : undefined;
-      if (parsedLatitude !== undefined && !Number.isNaN(parsedLatitude)) {
-        location.latitude = parsedLatitude;
-      }
-      if (parsedLongitude !== undefined && !Number.isNaN(parsedLongitude)) {
-        location.longitude = parsedLongitude;
-      }
     }
 
     const aboutInput = req.body?.about;
@@ -425,17 +415,6 @@ const updateSectionItemDetail = async (req, res) => {
         );
         if (mapUrl) {
           location.mapUrl = mapUrl;
-        }
-
-        const latitude = locationInput.latitude ?? locationInput.lat;
-        const longitude = locationInput.longitude ?? locationInput.lng;
-        const parsedLatitude = latitude !== undefined ? Number(latitude) : undefined;
-        const parsedLongitude = longitude !== undefined ? Number(longitude) : undefined;
-        if (parsedLatitude !== undefined && !Number.isNaN(parsedLatitude)) {
-          location.latitude = parsedLatitude;
-        }
-        if (parsedLongitude !== undefined && !Number.isNaN(parsedLongitude)) {
-          location.longitude = parsedLongitude;
         }
 
         detail.location = location;

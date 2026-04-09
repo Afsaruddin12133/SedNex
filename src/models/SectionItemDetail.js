@@ -16,8 +16,6 @@ const locationSchema = new mongoose.Schema(
   {
     address: { type: String, trim: true },
     mapUrl: { type: String, trim: true },
-    latitude: { type: Number },
-    longitude: { type: Number },
   },
   { _id: false }
 );
