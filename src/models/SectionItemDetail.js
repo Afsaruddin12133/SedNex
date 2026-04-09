@@ -45,6 +45,24 @@ const scheduleSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const topOfficialSchema = new mongoose.Schema(
+  {
+    name: { type: String, trim: true },
+    position: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
+const socialMediaSchema = new mongoose.Schema(
+  {
+    facebook: { type: String, trim: true },
+    youtube: { type: String, trim: true },
+    twitter: { type: String, trim: true },
+    x: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
 const sectionItemDetailSchema = new mongoose.Schema(
   {
     sectionId: {
@@ -70,6 +88,20 @@ const sectionItemDetailSchema = new mongoose.Schema(
     },
     about: {
       type: aboutSchema,
+    },
+    coverPhoto: {
+      type: String,
+      trim: true,
+    },
+    bio: {
+      type: String,
+      trim: true,
+    },
+    topOfficial: {
+      type: topOfficialSchema,
+    },
+    socialMedia: {
+      type: socialMediaSchema,
     },
     offDaySchedules: {
       type: [scheduleSchema],

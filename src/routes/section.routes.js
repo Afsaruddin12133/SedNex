@@ -91,6 +91,7 @@ router.post(
   "/:slug/items/:itemId/details",
   authMiddleware,
   editorMiddleware,
+  sectionUpload.single("coverPhoto"),
   createSectionItemDetail
 );
 
@@ -98,6 +99,7 @@ router.patch(
   "/:slug/items/:itemId/details/:detailId",
   authMiddleware,
   editorMiddleware,
+  sectionUpload.single("coverPhoto"),
   updateSectionItemDetail
 );
 

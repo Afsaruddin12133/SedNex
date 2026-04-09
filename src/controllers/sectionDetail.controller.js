@@ -187,6 +187,32 @@ const createSectionItemDetail = async (req, res) => {
           }
         : undefined;
 
+    const coverPhotoFile = req.file?.path ?? req.file?.url;
+    const coverPhoto = toTrimmedString(
+      coverPhotoFile ?? req.body?.coverPhoto ?? req.body?.cover_photo
+    );
+    const bio = toTrimmedString(req.body?.bio);
+
+    const topOfficialInput = req.body?.topOfficial ?? req.body?.top_official;
+    const topOfficial =
+      topOfficialInput && typeof topOfficialInput === "object"
+        ? {
+            name: toTrimmedString(topOfficialInput.name),
+            position: toTrimmedString(topOfficialInput.position),
+          }
+        : undefined;
+
+    const socialMediaInput = req.body?.socialMedia ?? req.body?.social_media;
+    const socialMedia =
+      socialMediaInput && typeof socialMediaInput === "object"
+        ? {
+            facebook: toTrimmedString(socialMediaInput.facebook),
+            youtube: toTrimmedString(socialMediaInput.youtube),
+            twitter: toTrimmedString(socialMediaInput.twitter),
+            x: toTrimmedString(socialMediaInput.x),
+          }
+        : undefined;
+
     const schedules = parseSchedules(req.body?.offDaySchedules ?? aboutInput?.offDaySchedules);
 
     const payload = {
@@ -204,6 +230,22 @@ const createSectionItemDetail = async (req, res) => {
 
     if (about) {
       payload.about = about;
+    }
+
+    if (coverPhoto) {
+      payload.coverPhoto = coverPhoto;
+    }
+
+    if (bio) {
+      payload.bio = bio;
+    }
+
+    if (topOfficial) {
+      payload.topOfficial = topOfficial;
+    }
+
+    if (socialMedia) {
+      payload.socialMedia = socialMedia;
     }
 
     if (schedules) {
@@ -413,6 +455,42 @@ const updateSectionItemDetail = async (req, res) => {
         };
       } else {
         detail.about = undefined;
+      }
+    }
+
+    if (req.file?.path || req.file?.url) {
+      detail.coverPhoto = toTrimmedString(req.file?.path ?? req.file?.url);
+    } else if (req.body?.coverPhoto !== undefined || req.body?.cover_photo !== undefined) {
+      detail.coverPhoto = toTrimmedString(req.body?.coverPhoto ?? req.body?.cover_photo);
+    }
+
+    if (req.body?.bio !== undefined) {
+      detail.bio = toTrimmedString(req.body.bio);
+    }
+
+    if (req.body?.topOfficial !== undefined || req.body?.top_official !== undefined) {
+      const topOfficialInput = req.body?.topOfficial ?? req.body?.top_official;
+      if (topOfficialInput && typeof topOfficialInput === "object") {
+        detail.topOfficial = {
+          name: toTrimmedString(topOfficialInput.name),
+          position: toTrimmedString(topOfficialInput.position),
+        };
+      } else {
+        detail.topOfficial = undefined;
+      }
+    }
+
+    if (req.body?.socialMedia !== undefined || req.body?.social_media !== undefined) {
+      const socialMediaInput = req.body?.socialMedia ?? req.body?.social_media;
+      if (socialMediaInput && typeof socialMediaInput === "object") {
+        detail.socialMedia = {
+          facebook: toTrimmedString(socialMediaInput.facebook),
+          youtube: toTrimmedString(socialMediaInput.youtube),
+          twitter: toTrimmedString(socialMediaInput.twitter),
+          x: toTrimmedString(socialMediaInput.x),
+        };
+      } else {
+        detail.socialMedia = undefined;
       }
     }
 
