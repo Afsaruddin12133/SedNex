@@ -34,6 +34,51 @@ const userSchema = new mongoose.Schema(
       default: null
     },
 
+    birthAddress: {
+      type: String,
+      default: null,
+    },
+    currentAddress: {
+      type: String,
+      default: null,
+    },
+    birthDate: {
+      type: Date,
+      default: null,
+    },
+    gender: {
+      type: String,
+      default: null,
+    },
+    maritalStatus: {
+      type: String,
+      default: null,
+    },
+    nationality: {
+      type: String,
+      default: null,
+    },
+    bloodGroup: {
+      type: String,
+      default: null,
+    },
+    jobTitle: {
+      type: String,
+      default: null,
+    },
+    companyName: {
+      type: String,
+      default: null,
+    },
+    workAddress: {
+      type: String,
+      default: null,
+    },
+    websiteLink: {
+      type: String,
+      default: null,
+    },
+
     phone: {
       type: String,
       default: null,
