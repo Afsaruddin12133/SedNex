@@ -4,6 +4,7 @@ const adminMiddleware = require("../middlewares/admin.middleware");
 const editorMiddleware = require("../middlewares/editor.middleware");
 const userProfileUpdateMiddleware = require("../middlewares/userProfileUpdate.middleware");
 const {
+  getMyProfile,
   updateUserRole,
   updateUserProfile,
   updateUserPasswordByAdmin,
@@ -18,10 +19,18 @@ const upload = require("../middlewares/upload");
 
 const router = express.Router();
 
+// Get My Profile...
+router.get(
+  "/me",
+  authMiddleware,
+  getMyProfile
+);
+
 // Get Users...
 router.get(
   "/", 
-  authMiddleware, 
+  authMiddleware,
+  adminMiddleware, 
   getAllUsers
 );
 

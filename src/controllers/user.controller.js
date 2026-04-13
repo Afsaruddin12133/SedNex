@@ -2,27 +2,46 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 
 // =======================
+// Get My Profile (User)
+// =======================
+const getMyProfile = async (req, res) => {
+  try {
+    const userId = req.authUser && req.authUser.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user profile",
+    });
+  }
+};
+
+// =======================
 // Get All Users (Admin)
 // =======================
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find(
-      {},
-      {
-        _id: 1,
-        name: 1,
-        email: 1,
-        country: 1,
-        role: 1,
-        isActive: 1,
-        profileImage: 1,
-        bio: 1,
-        phone: 1,
-        provider: 1,
-        createdAt: 1,
-        updatedAt: 1,
-      }
-    ).sort({ createdAt: -1 });
+    const users = await User.find({}).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -350,6 +369,7 @@ const deleteUserWarning = async (req, res) => {
 
 
 module.exports = {
+  getMyProfile,
   getAllUsers,
   updateUserRole,
   deleteUser,
