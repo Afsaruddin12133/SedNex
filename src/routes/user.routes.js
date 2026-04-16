@@ -30,7 +30,6 @@ router.get(
 router.get(
   "/", 
   authMiddleware,
-  adminMiddleware, 
   getAllUsers
 );
 
