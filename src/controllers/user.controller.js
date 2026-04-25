@@ -140,6 +140,36 @@ const updateUserProfile = async (req, res) => {
 
     const updates = { ...req.body };
 
+    if (Object.prototype.hasOwnProperty.call(updates, "isVerified")) {
+      const rawValue = updates.isVerified;
+      let normalizedValue;
+
+      if (typeof rawValue === "boolean") {
+        normalizedValue = rawValue;
+      } else if (typeof rawValue === "number") {
+        if (rawValue === 1) normalizedValue = true;
+        if (rawValue === 0) normalizedValue = false;
+      } else if (typeof rawValue === "string") {
+        const normalized = rawValue.trim().toLowerCase();
+
+        if (["true", "1", "yes", "on"].includes(normalized)) {
+          normalizedValue = true;
+        }
+
+        if (["false", "0", "no", "off"].includes(normalized)) {
+          normalizedValue = false;
+        }
+      }
+
+      if (typeof normalizedValue === "undefined") {
+        return res.status(400).json({
+          message: "isVerified must be true or false",
+        });
+      }
+
+      updates.isVerified = normalizedValue;
+    }
+
     if (req.file) {
       updates.profileImage = req.file.path;
     }
