@@ -18,6 +18,7 @@ const busServicesRoutes = require("./busServices.routes");
 const ramadanTimeRoutes = require("./ramadanTime.routes");
 const notificationRoutes = require("./notification.routes");
 const metricsRoutes = require("./metrics.routes");
+const globalSearchRoutes = require("./globalSearch.routes");
 
 
 const router = express.Router();
@@ -41,6 +42,7 @@ router.use("/bus-services", busServicesRoutes);
 router.use("/ramadan-times", ramadanTimeRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/metrics", metricsRoutes);
+router.use("/search", globalSearchRoutes);
 
 module.exports = router;
 
